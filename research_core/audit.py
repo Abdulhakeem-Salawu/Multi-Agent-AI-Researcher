@@ -24,7 +24,7 @@ def extract_candidate_claims(answer: str) -> list[str]:
 
 def lexical_support_score(claim: str, evidence: str) -> float:
     claim_tokens = [token for token in tokenize(claim) if len(token) > 2]
-    evidence_tokens = set(token for token in tokenize(evidence) if len(token) > 2)
+    evidence_tokens = {token for token in tokenize(evidence) if len(token) > 2}
     if not claim_tokens or not evidence_tokens:
         return 0.0
     counts = Counter(claim_tokens)
