@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
@@ -24,7 +24,7 @@ class ResearchSettings:
     database_path: str = "data/research_runs.sqlite3"
 
     @classmethod
-    def from_environment(cls) -> "ResearchSettings":
+    def from_environment(cls) -> ResearchSettings:
         load_dotenv()
         return cls(
             tavily_api_key=os.getenv("TAVILY_API_KEY"),
