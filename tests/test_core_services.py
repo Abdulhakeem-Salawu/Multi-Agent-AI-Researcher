@@ -23,8 +23,9 @@ def test_rank_hits_deduplicates_urls_and_uses_stable_query_order():
         query_index=1,
         result_index=0,
     )
+    primary = {**common, "title": "Primary title"}
     first_hit = RetrievedHit(
-        **common,
+        **primary,
         query="primary query",
         query_index=0,
         result_index=0,
