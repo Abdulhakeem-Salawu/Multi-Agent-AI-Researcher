@@ -48,14 +48,15 @@ class TavilySearchProvider:
                 response.raise_for_status()
                 payload = response.json()
                 break
-            except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError):
+            except httpx.HTTPStatusError as exc:
+                status = exc.response.status_code
+                retryable = status in {408, 429} or status >= 500
+                if not retryable or attempt + 1 >= self.max_attempts:
+                    raise
+                time.sleep(0.5 * (2**attempt))
+            except (httpx.TimeoutException, httpx.NetworkError):
                 if attempt + 1 >= self.max_attempts:
                     raise
-                # Retry only transient errors; do not retry ordinary client errors.
-                if isinstance(locals().get("response"), httpx.Response):
-                    status = response.status_code
-                    if status != 429 and status < 500:
-                        raise
                 time.sleep(0.5 * (2**attempt))
 
         if payload is None:
