@@ -29,7 +29,6 @@ def test_rank_hits_deduplicates_urls_and_uses_stable_query_order():
         query="primary query",
         query_index=0,
         result_index=0,
-        title="Primary title",
     )
     ranked = rank_hits(
         "How does hybrid retrieval combine lexical and vector search?",
