@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
 import re
+from datetime import datetime, timezone
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
 from research_core.audit import audit_claims
-from research_core.schemas import EvidenceSource, ResearchReport, RetrievedHit, SearchHit
 from research_core.retrieval import rank_hits
+from research_core.schemas import EvidenceSource, ResearchReport, RetrievedHit, SearchHit
 
 from .dependencies import ResearchDependencies
 from .state import ResearchState
@@ -38,7 +38,7 @@ def _parse_query_list(raw: str) -> list[str]:
         raise ValueError("Planner response did not contain a JSON array.")
     parsed = json.loads(cleaned[start : end + 1])
     if not isinstance(parsed, list):
-        raise ValueError("Planner response must be a JSON array.")
+        raise TypeError("Planner response must be a JSON array.")
     return _unique_strings([str(item) for item in parsed if str(item).strip()])
 
 
@@ -77,7 +77,7 @@ def build_research_graph(
                     temperature=0.0,
                 )
                 queries = _parse_query_list(raw)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - convert planner/model failures into a visible deterministic fallback.
                 planning_errors.append(
                     f"Planner failed ({type(exc).__name__}: {exc}); deterministic query planning was used."
                 )
@@ -125,7 +125,7 @@ def build_research_graph(
                     ).model_dump(mode="json")
                 )
             return {"search_results": results}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - all provider failures must become explicit task errors.
             # Preserve the task failure in state; never turn an error into a fabricated finding.
             return {
                 "search_errors": [
@@ -239,7 +239,7 @@ def build_research_graph(
                 if not answer:
                     raise RuntimeError("The configured model returned an empty answer.")
                 return {"draft_answer": answer}
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - expose model failures and use the documented extractive fallback.
                 limitations.append(
                     f"LLM synthesis failed ({type(exc).__name__}: {exc}); an extractive evidence summary was used."
                 )
