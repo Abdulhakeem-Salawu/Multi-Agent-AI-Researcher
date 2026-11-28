@@ -69,7 +69,7 @@ runtime_secret = modal.Secret.from_dict(
 benchmark_volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 qwen_cache_volume = modal.Volume.from_name(QWEN_CACHE_VOLUME_NAME, create_if_missing=True)
 
-image = (
+base_image = (
     modal.Image.debian_slim(python_version="3.11")
     .apt_install("git")
     .pip_install(
@@ -85,19 +85,26 @@ image = (
         "opentelemetry-exporter-otlp-proto-http>=1.27",
         "langfuse>=5.0,<6",
     )
-    .add_local_python_source(
-        "research_agent",
-        "research_core",
-        "research_observability",
-        "evaluation",
-    )
 )
 
-qwen_image = image.pip_install(
-    "torch>=2.6",
-    "transformers>=4.51,<6.0",
-    "accelerate>=1.0",
-    "safetensors>=0.4",
+LOCAL_PYTHON_PACKAGES = (
+    "research_agent",
+    "research_core",
+    "research_observability",
+    "evaluation",
+)
+
+image = base_image.add_local_python_source(*LOCAL_PYTHON_PACKAGES)
+
+qwen_image = (
+    base_image
+    .pip_install(
+        "torch>=2.6",
+        "transformers>=4.51,<6.0",
+        "accelerate>=1.0",
+        "safetensors>=0.4",
+    )
+    .add_local_python_source(*LOCAL_PYTHON_PACKAGES)
 )
 
 app = modal.App(APP_NAME)
