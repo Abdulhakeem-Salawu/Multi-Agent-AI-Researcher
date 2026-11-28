@@ -31,6 +31,5 @@ jobs:
             --relevant-source-url https://example.org/primary
       - name: Validate benchmark template schema
         run: research-bench validate evaluation/datasets/benchmark_template.json
-
       - name: Validate ResearchBench candidate seed pack
         run: research-bench validate evaluation/datasets/benchmark_candidates_v0.2.json

@@ -61,3 +61,17 @@ A ready case requires two independent, complete source/claim annotations and a c
 Redistributable and excerpt-permitted sources use repository snapshots with SHA-256. Restricted sources use a `controlled_snapshot_ref`; the repository validator reports them as not locally verified and they must be checked in their controlled store. Metadata-only sources do not have stored text and cannot be used as stored gold evidence spans. Do not copy restricted full text into this repository.
 
 The tooling is ready for dataset curation; the actual corpus, adjudicated labels, and reviewed baselines still need to be created by human annotators. No model-generated labels are treated as gold data.
+
+
+## Snapshot registration and human annotation workflow
+
+The candidate pack at evaluation/datasets/benchmark_candidates_v0.2.json is a draft work queue, not benchmark gold data. Every case must be frozen before forms can be exported.
+
+The research-bench CLI supports:
+- register-source: record a rights decision and copy a user-supplied UTF-8 source file only after explicit --confirm-rights; restricted text stays in controlled storage.
+- freeze-case: verify local hashes and rights handling, then freeze a case.
+- export-annotations: create separate blank forms for named annotators.
+- import-annotations: validate completed annotations, evidence references and quote spans, then write a new dataset version.
+- export-adjudication / import-adjudication: prepare and validate a separate adjudicator's final labels.
+
+See evaluation/ANNOTATION_GUIDE.md for the end-to-end commands and rights rules. Forms are not exported for unfrozen cases; released datasets are treated as immutable by these mutation commands. The workflow never scrapes or stores source text automatically, and it does not invent license decisions or annotation labels.

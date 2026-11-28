@@ -79,3 +79,85 @@ research-bench agreement evaluation/datasets/benchmark_v1.json --case-id CASE_ID
 ```
 
 A draft dataset is useful for annotation operations but must not be used for public performance claims or enforced quality thresholds.
+
+
+## Rights-aware snapshot and annotation CLI
+
+The candidate seed pack is intentionally unfrozen. Before exporting forms, register a rights decision and freeze every source in the case. Snapshot registration is manual: the command never downloads or copies web pages on its own.
+
+### 1. Register source rights and permitted text
+
+For a source whose full text may be redistributed under the verified license:
+
+~~~bash
+research-bench register-source evaluation/datasets/benchmark_candidates_v0.2.json \
+  --case-id CASE_ID --source-id SOURCE_ID \
+  --redistribution redistributable --license-id LICENSE_IDENTIFIER \
+  --input-file /path/to/verified-source-text.txt --confirm-rights \
+  --output /tmp/benchmark-next.json --repo-root .
+~~~
+
+For an excerpt-only permission, supply a file containing only the permitted excerpt and use --redistribution excerpt_only. The tool hashes exactly the UTF-8 bytes supplied; it cannot decide whether your license interpretation is correct.
+
+For a source that cannot be stored in the repository:
+
+~~~bash
+research-bench register-source /tmp/benchmark-next.json \
+  --case-id CASE_ID --source-id SOURCE_ID \
+  --redistribution restricted --license-id RIGHTS_BASIS \
+  --controlled-ref vault://YOUR-CONTROLLED-STORE/SNAPSHOT-ID \
+  --output /tmp/benchmark-next.json --repo-root . --overwrite-dataset
+~~~
+
+For metadata-only references, use --redistribution metadata_only and provide a documented rights basis in --license-id. Metadata-only sources cannot be used for stored gold evidence quotations.
+
+The --confirm-rights switch is required before a local full-text or excerpt file can be copied. Never use it unless the supplied file is legally permitted to be stored in the repository. Restricted source text must never be passed with --input-file.
+
+### 2. Freeze the evidence for a case
+
+After every source in that case has an explicit rights decision and an appropriate local snapshot or controlled reference:
+
+~~~bash
+research-bench freeze-case /tmp/benchmark-next.json \
+  --case-id CASE_ID --output /tmp/benchmark-frozen.json --repo-root .
+~~~
+
+This verifies local SHA-256 hashes and UTF-8 text before setting the case's frozen timestamp. A frozen case cannot be changed by the registration command. Create a new dataset version if evidence must change.
+
+### 3. Export independent forms
+
+~~~bash
+research-bench export-annotations /tmp/benchmark-frozen.json \
+  --output-dir .research-bench/forms \
+  --annotator-ids annotator_01 annotator_02 \
+  --case-id CASE_ID
+~~~
+
+Each annotator receives a separate file. Forms contain no other annotator's judgments and have blank labels; they are not complete annotations until the annotator fills in the date, every source grade, every claim status, rationales and required evidence spans.
+
+### 4. Import completed annotations
+
+~~~bash
+research-bench import-annotations /tmp/benchmark-frozen.json \
+  --annotation .research-bench/forms/CASE_ID/annotator_01.json \
+  --annotation .research-bench/forms/CASE_ID/annotator_02.json \
+  --output /tmp/benchmark-annotated.json --repo-root .
+~~~
+
+Import rejects duplicate annotators, missing or extra source/claim labels, supported/contradicted claims without evidence spans, mismatched benchmark versions, invalid quotations and hash mismatches. It writes a new dataset file instead of overwriting the input.
+
+### 5. Export and import adjudication
+
+~~~bash
+research-bench export-adjudication /tmp/benchmark-annotated.json \
+  --case-id CASE_ID --adjudicator-id adjudicator_01 \
+  --output .research-bench/forms/CASE_ID/adjudication.json
+
+research-bench import-adjudication /tmp/benchmark-annotated.json \
+  --form .research-bench/forms/CASE_ID/adjudication.json \
+  --output /tmp/benchmark-adjudicated.json --repo-root .
+~~~
+
+Fill the adjudication form with a final source grade and claim status, rationale and timestamp before importing. The adjudicator must be different from the independent annotators. The form includes both independent submissions for comparison and leaves final labels blank.
+
+Keep .research-bench/ local. Do not commit annotator working forms or controlled-store references that reveal sensitive internal locations. Only publish benchmark files after the rights, snapshot, annotation and adjudication review is complete.
