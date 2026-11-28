@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import threading
 from contextlib import nullcontext
-from types import ModuleType, SimpleNamespace
+from types import SimpleNamespace
 
 from research_core.llm import TransformersQwen3ChatModel
 
