@@ -145,7 +145,7 @@ class BrowseCompPlusCorpusSearchProvider:
                 metadata = dict(connection.execute("SELECT key, value FROM index_metadata"))
         except sqlite3.DatabaseError as exc:
             raise BrowseCompIndexError(
-                "The SQLite file is not a valid BrowseComp-Plus corpus index."
+                "This file is not a BrowseComp-Plus corpus index: required SQLite metadata is missing or invalid."
             ) from exc
         if metadata.get("dataset_id") != "browsecomp-plus-corpus":
             raise BrowseCompIndexError("This is not a BrowseComp-Plus corpus index.")
