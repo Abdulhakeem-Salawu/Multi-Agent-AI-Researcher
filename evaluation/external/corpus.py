@@ -140,12 +140,22 @@ class BrowseCompPlusCorpusSearchProvider:
         self.calls: list[str] = []
         if not self.index_path.is_file():
             raise BrowseCompIndexError(f"Index not found: {self.index_path}")
-        with sqlite3.connect(self.index_path) as connection:
-            metadata = dict(connection.execute("SELECT key, value FROM index_metadata"))
-            if metadata.get("dataset_id") != "browsecomp-plus-corpus":
-                raise BrowseCompIndexError("This is not a BrowseComp-Plus corpus index.")
-            self.revision = metadata.get("revision", "unknown")
-            self.document_count = int(metadata.get("document_count", "0"))
+        try:
+            with sqlite3.connect(self.index_path) as connection:
+                metadata = dict(connection.execute("SELECT key, value FROM index_metadata"))
+        except sqlite3.DatabaseError as exc:
+            raise BrowseCompIndexError(
+                "The SQLite file is not a valid BrowseComp-Plus corpus index."
+            ) from exc
+        if metadata.get("dataset_id") != "browsecomp-plus-corpus":
+            raise BrowseCompIndexError("This is not a BrowseComp-Plus corpus index.")
+        try:
+            self.revision = metadata["revision"]
+            self.document_count = int(metadata["document_count"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise BrowseCompIndexError(
+                "The BrowseComp-Plus corpus index metadata is incomplete or invalid."
+            ) from exc
 
     @staticmethod
     def _match_expression(query: str) -> str:

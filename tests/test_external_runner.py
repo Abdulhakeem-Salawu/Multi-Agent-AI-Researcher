@@ -165,6 +165,5 @@ def test_resume_manifest_rejects_changed_inputs_or_task_selection():
     with pytest.raises(ValueError, match="agent_max_queries"):
         _prepare_resume_manifest(previous, changed_model_config, set())
 
-    unexpected = {**_resume_manifest(), "task_ids": ["f-1"]}
     with pytest.raises(ValueError, match="outside the selected run"):
-        _prepare_resume_manifest(previous, unexpected, {"f-2"})
+        _prepare_resume_manifest(previous, _resume_manifest(), {"f-3"})
