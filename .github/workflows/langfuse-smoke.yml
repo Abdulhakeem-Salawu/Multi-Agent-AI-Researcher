@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -26,9 +26,9 @@ jobs:
         run: python -m pip install -e ".[observability]"
       - name: Verify credentials and send a synthetic test observation
         env:
-          LANGFUSE_PUBLIC_KEY: \${{ secrets.LANGFUSE_PUBLIC_KEY }}
-          LANGFUSE_SECRET_KEY: \${{ secrets.LANGFUSE_SECRET_KEY }}
-          LANGFUSE_BASE_URL: \${{ secrets.LANGFUSE_BASE_URL || vars.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com' }}
-          LANGFUSE_TRACE_CONTENT: \${{ secrets.LANGFUSE_TRACE_CONTENT || vars.LANGFUSE_TRACE_CONTENT || 'false' }}
-          GITHUB_REF_NAME: \${{ github.ref_name }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL || vars.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com' }}
+          LANGFUSE_TRACE_CONTENT: ${{ secrets.LANGFUSE_TRACE_CONTENT || vars.LANGFUSE_TRACE_CONTENT || 'false' }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: python scripts/langfuse_smoke.py
