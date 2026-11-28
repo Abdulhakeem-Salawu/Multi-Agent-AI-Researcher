@@ -79,3 +79,11 @@ def test_langfuse_base_url_accepts_dotenv_assignment_value(monkeypatch):
     monkeypatch.setenv("LANGFUSE_BASE_URL", "LANGFUSE_BASE_URL=https://cloud.langfuse.com")
 
     assert normalize_langfuse_base_url() == "https://cloud.langfuse.com"
+
+
+def test_langfuse_base_url_accepts_yaml_style_assignment_value(monkeypatch):
+    from research_observability.tracing import normalize_langfuse_base_url
+
+    monkeypatch.setenv("LANGFUSE_BASE_URL", "LANGFUSE_BASE_URL: https://cloud.langfuse.com")
+
+    assert normalize_langfuse_base_url() == "https://cloud.langfuse.com"

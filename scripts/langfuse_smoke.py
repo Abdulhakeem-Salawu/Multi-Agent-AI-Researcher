@@ -4,9 +4,6 @@ import os
 import sys
 from typing import Any
 
-from research_observability.tracing import normalize_langfuse_base_url
-
-
 REQUIRED_ENV_VARS = ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY")
 
 
@@ -16,6 +13,8 @@ def run_smoke_test(client: Any | None = None) -> None:
         raise RuntimeError(
             "Missing GitHub Actions environment variables: " + ", ".join(missing)
         )
+
+    from research_observability.tracing import normalize_langfuse_base_url
 
     normalize_langfuse_base_url()
 
