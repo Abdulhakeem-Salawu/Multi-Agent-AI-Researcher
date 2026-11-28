@@ -33,7 +33,7 @@ research-eval = "evaluation.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["research_agent*", "research_core*", "research_observability*", "evaluation*"]
+include = ["research_agent*", "research_core*", "research_observability*", "evaluation*", "scripts*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
