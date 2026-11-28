@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from research_agent.dependencies import ResearchSettings
 from research_agent.graph import build_default_graph
 from research_core.storage import ResearchRunStore
+from research_observability.metrics import prometheus_payload, track_research_run
+from research_observability.tracing import observation
 
 
 class ResearchRequest(BaseModel):
@@ -25,16 +27,45 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok", "service": "multi-agent-ai-researcher"}
 
+    @app.get("/metrics", include_in_schema=False)
+    def metrics() -> Response:
+        payload = prometheus_payload()
+        if payload is None:
+            raise HTTPException(
+                status_code=503,
+                detail='Prometheus metrics are not installed. Run: pip install -e ".[observability]"',
+            )
+        content, content_type = payload
+        return Response(content=content, media_type=content_type)
+
     @app.post("/research")
     def research(request: ResearchRequest) -> dict:
         thread_id = str(uuid4())
         try:
-            graph = build_default_graph()
-            result = graph.invoke(
-                {"question": request.question},
-                config={"configurable": {"thread_id": thread_id}},
-            )
-            return result["report"]
+            with track_research_run("api"):
+                with observation(
+                    "research.run",
+                    metadata={
+                        "research.entrypoint": "api",
+                        "research.run_id": thread_id,
+                    },
+                ) as span:
+                    graph = build_default_graph()
+                    result = graph.invoke(
+                        {"question": request.question},
+                        config={"configurable": {"thread_id": thread_id}},
+                    )
+                    report = result["report"]
+                    if hasattr(span, "update"):
+                        span.update(
+                            output={
+                                "run_id": report.get("run_id"),
+                                "source_count": len(report.get("sources", [])),
+                                "claim_count": len(report.get("claim_verifications", [])),
+                                "research_rounds": report.get("research_rounds", 0),
+                            }
+                        )
+                    return report
         except (RuntimeError, ValueError) as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         except Exception as exc:

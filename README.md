@@ -93,6 +93,34 @@ The API also exposes `GET /health` and `GET /runs/{run_id}`.
 
 The confidence values and review scores are model assessments, not calibrated probabilities or guarantees. They must be evaluated against human-labelled examples before they are used as quality thresholds.
 
+## Observability
+
+Install the optional telemetry stack:
+
+```bash
+pip install -e ".[observability]"
+```
+
+The application instruments graph nodes, web-search requests, LLM calls and end-to-end runs. Prometheus metrics are available at GET /metrics when the optional Prometheus client is installed. A scrape configuration is provided in deployment/prometheus.yml; import deployment/grafana-dashboard.json into Grafana as a starter dashboard.
+
+For Langfuse, configure LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY and LANGFUSE_BASE_URL. Prompt management is opt-in through LANGFUSE_PROMPT_MANAGEMENT_ENABLED=true. Create the six named text prompts in Langfuse and promote the intended version to the configured label. Missing/unavailable prompts fall back to the checked-in system instructions.
+
+The Langfuse Python SDK v5 requires Python 3.11+. The rest of the project retains its Python 3.10 floor; Python 3.10 can use the OpenTelemetry and Prometheus integrations without the Langfuse SDK. Configure OTLP export with OTEL_EXPORTER_OTLP_ENDPOINT.
+
+**Privacy:** trace content is excluded by default. Prompt text, research questions, provider queries, retrieved passages and model inputs/outputs are not sent to telemetry unless LANGFUSE_TRACE_CONTENT=true is explicitly enabled. Review your deployment's data-handling requirements before enabling content capture.
+
+## Offline evaluation
+
+Install the development tools and score a saved report:
+
+```bash
+pip install -e '.[dev]'
+research-eval path/to/report.json \
+  --relevant-source-url https://example.org/primary-source
+```
+
+Retrieval relevance labels must be human-reviewed. The current metrics measure retrieval ranking, citation bookkeeping and verification coverage; they do not independently establish factual truth. See evaluation/README.md before creating CI quality thresholds.
+
 ## Design decisions
 
 - **LangGraph owns orchestration.** Search, retrieval, model access and verification remain ordinary Python services behind small interfaces.

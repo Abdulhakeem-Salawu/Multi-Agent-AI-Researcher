@@ -46,6 +46,7 @@ class ResearchSettings:
 class ResearchDependencies:
     search_provider: SearchProvider
     llm: ChatModel | None = None
+    llm_model: str = "unknown"
     max_queries: int = 4
     max_results_per_query: int = 8
     max_evidence_sources: int = 8
@@ -70,6 +71,7 @@ def build_default_dependencies() -> ResearchDependencies:
             api_key=settings.llm_api_key,
             timeout=settings.request_timeout_seconds,
         ),
+        llm_model=settings.llm_model,
         max_queries=settings.max_queries,
         max_results_per_query=settings.max_results_per_query,
         max_evidence_sources=settings.max_evidence_sources,

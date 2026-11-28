@@ -1,0 +1,64 @@
+{
+  "question": "What is the role of hybrid retrieval in evidence selection?",
+  "answer": "Hybrid retrieval combines lexical and dense retrieval to improve evidence discovery [S1].",
+  "sources": [
+    {
+      "id": "S1",
+      "title": "Illustrative primary-source record",
+      "url": "https://example.org/primary",
+      "published_date": "2026-01-15",
+      "retrieved_excerpt": "Hybrid retrieval combines lexical and dense retrieval methods."
+    }
+  ],
+  "claims": [
+    {
+      "claim": "Hybrid retrieval combines lexical and dense retrieval.",
+      "cited_sources": [
+        "S1"
+      ],
+      "lexical_support_score": 1,
+      "status": "candidate_supported",
+      "reason": "Synthetic CI fixture only."
+    }
+  ],
+  "claim_verifications": [
+    {
+      "claim_id": "C-smoke",
+      "claim": "Hybrid retrieval combines lexical and dense retrieval.",
+      "status": "supported",
+      "confidence": 0.9,
+      "supporting_evidence": [
+        {
+          "source_id": "S1",
+          "quote": "Hybrid retrieval combines lexical and dense retrieval methods.",
+          "explanation": "Synthetic CI fixture only."
+        }
+      ],
+      "contradicting_evidence": [],
+      "reasoning": "Synthetic CI fixture.",
+      "research_needed": false,
+      "span_warnings": []
+    }
+  ],
+  "report_review": {
+    "status": "reviewed",
+    "overall_score": 4,
+    "completeness_score": 4,
+    "analytical_depth_score": 4,
+    "citation_quality_score": 4,
+    "ready_for_publication": true,
+    "strengths": [
+      "Synthetic example"
+    ],
+    "issues": [],
+    "rationale": "Synthetic CI fixture only."
+  },
+  "limitations": [
+    "Synthetic CI fixture; not an evaluation benchmark."
+  ],
+  "query_plan": [
+    "hybrid retrieval evidence"
+  ],
+  "research_rounds": 0,
+  "run_id": null
+}

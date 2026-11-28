@@ -12,16 +12,20 @@ permissions:
 jobs:
   python-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install package and development dependencies
-        run: python -m pip install -e ".[dev]"
+      - name: Install package, development and observability dependencies
+        run: python -m pip install -e ".[dev,observability]"
       - name: Run tests
         run: pytest
       - name: Lint
         run: ruff check .
+      - name: Smoke-test offline evaluation CLI
+        run: |
+          research-eval evaluation/datasets/smoke_report.json \
+            --relevant-source-url https://example.org/primary
