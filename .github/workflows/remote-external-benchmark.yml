@@ -23,6 +23,11 @@ on:
         required: true
         type: string
         default: Qwen/Qwen3-1.7B
+      model_revision:
+        description: Hugging Face branch, tag or commit SHA; resolved SHA is recorded in the run manifest
+        required: true
+        type: string
+        default: main
       stage:
         description: Prepare data, build the BrowseComp corpus, run, or do all stages
         required: true
@@ -97,6 +102,7 @@ jobs:
       INCLUDE_NONCOMMERCIAL: ${{ inputs.include_noncommercial || false }}
       REQUESTED_RUN_TAG: ${{ inputs.run_tag || '' }}
       MODEL_ID: ${{ inputs.model_id || 'Qwen/Qwen3-1.7B' }}
+      MODEL_REVISION: ${{ inputs.model_revision || 'main' }}
     steps:
       - name: Checkout benchmark runner code
         uses: actions/checkout@v5
@@ -159,6 +165,7 @@ jobs:
             --run-tag "$run_tag"
             --source-commit "$GITHUB_SHA"
             --model-id "$MODEL_ID"
+            --model-revision "$MODEL_REVISION"
           )
           if [[ -n "$LANGUAGE_FILTER" ]]; then
             args+=(--language "$LANGUAGE_FILTER")

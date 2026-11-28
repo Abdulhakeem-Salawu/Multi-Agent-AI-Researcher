@@ -292,6 +292,7 @@ def execute_qwen_experiment(
     input_path: str,
     output_dir: str,
     model_id: str = DEFAULT_MODEL_ID,
+    model_revision: str = "main",
     limit: int = 3,
     offset: int = 0,
     language: str = "",
@@ -312,7 +313,7 @@ def execute_qwen_experiment(
     try:
         chat_model = TransformersQwen3ChatModel(
             model_id,
-            revision="main",
+            revision=model_revision,
             hf_token=os.getenv("HF_TOKEN"),
             max_new_tokens=4096,
             max_input_tokens=24576,
@@ -377,6 +378,7 @@ def execute_external_benchmark(
     run_tag: str = "",
     source_commit: str = "",
     model_id: str = DEFAULT_MODEL_ID,
+    model_revision: str = "main",
 ) -> dict[str, Any]:
     """Download, index and/or evaluate an external benchmark entirely inside Modal."""
     if dataset_id not in {"frames", "deepresearch-bench-ii", "browsecomp-plus"}:
@@ -480,6 +482,7 @@ def execute_external_benchmark(
         input_path=str(input_path),
         output_dir=str(output_dir),
         model_id=model_id,
+        model_revision=model_revision,
         limit=limit,
         offset=offset,
         language=language,
@@ -513,6 +516,7 @@ def main(
     run_tag: str = "",
     source_commit: str = "",
     model_id: str = DEFAULT_MODEL_ID,
+    model_revision: str = "main",
 ) -> None:
     result = execute_external_benchmark.remote(
         dataset_id=dataset_id,
@@ -524,5 +528,6 @@ def main(
         run_tag=run_tag,
         source_commit=source_commit,
         model_id=model_id,
+        model_revision=model_revision,
     )
     print(json.dumps(result, indent=2, ensure_ascii=False))

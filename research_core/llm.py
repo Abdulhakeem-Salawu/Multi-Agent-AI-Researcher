@@ -87,12 +87,27 @@ class TransformersQwen3ChatModel:
         if max_new_tokens < 1 or max_input_tokens < 1:
             raise ValueError("Token limits must be positive.")
 
-        hf_kwargs: dict[str, str] = {"revision": revision}
+        # Resolve mutable refs (for example, "main") to an immutable commit
+        # before loading any files. Both tokenizer and weights must use this SHA.
+        from huggingface_hub import HfApi
+
+        model_info = HfApi(token=hf_token).model_info(
+            repo_id=model_id,
+            revision=revision,
+        )
+        resolved_revision = getattr(model_info, "sha", None)
+        if not isinstance(resolved_revision, str) or not resolved_revision:
+            raise RuntimeError(
+                f"Could not resolve an immutable Hugging Face commit for {model_id}@{revision}."
+            )
+
+        hf_kwargs: dict[str, str] = {"revision": resolved_revision}
         if hf_token:
             hf_kwargs["token"] = hf_token
 
         self.model_id = model_id
         self.requested_revision = revision
+        self.resolved_revision = resolved_revision
         self.max_new_tokens = max_new_tokens
         self.max_input_tokens = max_input_tokens
         self.enable_thinking = enable_thinking
@@ -109,11 +124,8 @@ class TransformersQwen3ChatModel:
         )
         self.model.eval()
         self.device = next(self.model.parameters()).device
-        self.resolved_revision = (
-            getattr(self.model.config, "_commit_hash", None)
-            or getattr(self.tokenizer, "_commit_hash", None)
-            or revision
-        )
+        # Keep the Hub-resolved SHA as the authoritative revision. Transformers
+        # may omit _commit_hash for some cached/offline loading paths.
 
     def complete(
         self,

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import sys
 import threading
 from contextlib import nullcontext
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 from research_core.llm import TransformersQwen3ChatModel
 
@@ -85,3 +86,56 @@ def test_transformers_qwen_chat_adapter_uses_non_thinking_sampling_settings():
     assert fake_model.kwargs["temperature"] == 0.7
     assert fake_model.kwargs["top_p"] == 0.8
     assert fake_model.kwargs["top_k"] == 20
+
+
+def test_transformers_qwen_resolves_and_loads_both_components_from_immutable_sha(monkeypatch):
+    resolved_sha = "a" * 40
+    calls = []
+
+    class FakeHub:
+        def __init__(self, token=None):
+            assert token == "hf-test-token"
+
+        def model_info(self, *, repo_id, revision):
+            assert repo_id == "Qwen/Qwen3-1.7B"
+            assert revision == "main"
+            return SimpleNamespace(sha=resolved_sha)
+
+    class FakeTokenizerLoader:
+        @staticmethod
+        def from_pretrained(model_id, **kwargs):
+            calls.append(("tokenizer", model_id, kwargs.copy()))
+            return FakeTokenizer()
+
+    class FakeModelLoader:
+        @staticmethod
+        def from_pretrained(model_id, **kwargs):
+            calls.append(("model", model_id, kwargs.copy()))
+            model = FakeModel()
+            model.config = SimpleNamespace(_commit_hash=None)
+            model.eval = lambda: None
+            model.parameters = lambda: iter([SimpleNamespace(device="cuda:0")])
+            return model
+
+    monkeypatch.setitem(sys.modules, "huggingface_hub", SimpleNamespace(HfApi=FakeHub))
+    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace())
+    monkeypatch.setitem(
+        sys.modules,
+        "transformers",
+        SimpleNamespace(
+            AutoTokenizer=FakeTokenizerLoader,
+            AutoModelForCausalLM=FakeModelLoader,
+        ),
+    )
+
+    adapter = TransformersQwen3ChatModel(
+        "Qwen/Qwen3-1.7B",
+        revision="main",
+        hf_token="hf-test-token",
+    )
+
+    assert adapter.requested_revision == "main"
+    assert adapter.resolved_revision == resolved_sha
+    assert [call[0] for call in calls] == ["tokenizer", "model"]
+    assert all(call[2]["revision"] == resolved_sha for call in calls)
+    assert all(call[2]["token"] == "hf-test-token" for call in calls)
