@@ -145,6 +145,18 @@ def _assert_form_case_fingerprint(form: dict[str, Any], case: Any) -> None:
             raise ValueError("Adjudication form independent annotations do not match the imported submissions.")
 
 
+def _form_claim_judgments(items: Any) -> list[dict[str, Any]]:
+    if not isinstance(items, list):
+        raise ValueError("Form claim_judgments must be a list.")
+    allowed = ("claim_id", "status", "evidence_spans", "rationale")
+    return [
+        {key: item[key] for key in allowed if key in item}
+        if isinstance(item, dict)
+        else item
+        for item in items
+    ]
+
+
 def _validate_annotation(annotation: CaseAnnotation, case: Any) -> None:
     source_ids = {source.source_id for source in case.snapshot.sources}
     claim_ids = {claim.claim_id for claim in case.expected_claims}
@@ -326,7 +338,7 @@ def import_annotation_forms(
                     "annotator_id": annotator_id,
                     "annotated_at": form.get("annotated_at"),
                     "source_relevance": form.get("source_relevance", []),
-                    "claim_judgments": form.get("claim_judgments", []),
+                    "claim_judgments": _form_claim_judgments(form.get("claim_judgments", [])),
                     "notes": form.get("notes", ""),
                 }
             )
@@ -447,7 +459,7 @@ def import_adjudication_form(
                 "adjudicator_id": adjudicator_id,
                 "adjudicated_at": form.get("adjudicated_at"),
                 "source_relevance": form.get("source_relevance", []),
-                "claim_judgments": form.get("claim_judgments", []),
+                "claim_judgments": _form_claim_judgments(form.get("claim_judgments", [])),
                 "rationale_for_disagreements": form.get("rationale_for_disagreements", ""),
             }
         )
