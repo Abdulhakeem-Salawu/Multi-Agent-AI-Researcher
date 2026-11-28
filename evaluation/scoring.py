@@ -344,7 +344,7 @@ def score_report_against_case(
                 item.relation == "extra" for item in alignment_items
             ),
             "unresolved_generated_claim_count": sum(
-                item.status != "supported"
+                item.get("status") != "supported"
                 for item in (report.get("claim_verifications") or [])
                 if isinstance(item, Mapping)
             ),
