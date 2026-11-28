@@ -167,6 +167,47 @@ The scorer reports graded retrieval, claim alignment/coverage, four-way claim-st
 
 Sources marked `restricted` must use a `controlled_snapshot_ref` and must not be committed as full text. `metadata_only` sources cannot be cited as stored evidence spans. Locally stored redistributable or excerpt-permitted snapshots are SHA-256 checked.
 
+### Curate and annotate a candidate case
+
+The 24-case seed pack is intentionally unfrozen. For each case, register every source's rights status first. For restricted source material, keep the full document in an approved controlled store and record only its reference. For local snapshots, pass only text whose redistribution or excerpt permission has been verified.
+
+Example using the LangGraph candidate case and a controlled source store:
+
+~~~bash
+research-bench register-source evaluation/datasets/benchmark_candidates_v0.2.json \
+  --case-id LG-SEND-001 --source-id langgraph_graph_api \
+  --redistribution restricted --license-id RIGHTS_BASIS_RECORDED \
+  --controlled-ref vault://research-bench/LG-SEND-001/langgraph-graph-api-v1 \
+  --output /tmp/research-bench-rights.json --repo-root .
+
+research-bench freeze-case /tmp/research-bench-rights.json \
+  --case-id LG-SEND-001 --output /tmp/research-bench-frozen.json --repo-root .
+
+research-bench export-annotations /tmp/research-bench-frozen.json \
+  --output-dir .research-bench/forms \
+  --annotator-ids annotator_01 annotator_02 \
+  --case-id LG-SEND-001
+~~~
+
+Give each annotator only their own file under .research-bench/forms/LG-SEND-001/. They must access controlled source content using the approved vault reference. After both forms are completed independently:
+
+~~~bash
+research-bench import-annotations /tmp/research-bench-frozen.json \
+  --annotation .research-bench/forms/LG-SEND-001/annotator_01.json \
+  --annotation .research-bench/forms/LG-SEND-001/annotator_02.json \
+  --output /tmp/research-bench-annotated.json --repo-root .
+
+research-bench export-adjudication /tmp/research-bench-annotated.json \
+  --case-id LG-SEND-001 --adjudicator-id adjudicator_01 \
+  --output .research-bench/forms/LG-SEND-001/adjudication.json
+
+research-bench import-adjudication /tmp/research-bench-annotated.json \
+  --form .research-bench/forms/LG-SEND-001/adjudication.json \
+  --output /tmp/research-bench-adjudicated.json --repo-root .
+~~~
+
+Change RIGHTS_BASIS_RECORDED and the controlled-store reference to the actual documented permission and location. Do not use these placeholders literally. Repeat source registration for every source in a case before freezing it. See evaluation/ANNOTATION_GUIDE.md for redistributable, excerpt-only, metadata-only and restricted-source handling.
+
 ## Design decisions
 
 - **LangGraph owns orchestration.** Search, retrieval, model access and verification remain ordinary Python services behind small interfaces.
