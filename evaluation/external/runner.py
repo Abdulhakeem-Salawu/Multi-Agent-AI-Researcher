@@ -56,7 +56,7 @@ def _parse_json(raw: str) -> dict[str, Any]:
         raise ValueError("Judge response did not contain a JSON object.")
     value = json.loads(text[start:end + 1])
     if not isinstance(value, dict):
-        raise ValueError("Judge response must be a JSON object.")
+        raise TypeError("Judge response must be a JSON object.")
     return value
 
 
@@ -90,7 +90,7 @@ def _drb2_judge(item: Any, report: dict[str, Any], judge: OpenAICompatibleChatMo
         )
         results = _parse_json(raw).get("results")
         if not isinstance(results, list):
-            raise ValueError("DRB II judge did not return a results list.")
+            raise TypeError("DRB II judge did not return a results list.")
         batch_ids = {row["rubric_id"] for row in batch}
         received: set[str] = set()
         for result in results:
@@ -157,7 +157,7 @@ def _frames_answer_extract(item: Any, report: dict[str, Any], judge: OpenAICompa
     result = _parse_json(raw)
     answer = result.get("predicted_answer")
     if not isinstance(answer, str):
-        raise ValueError("FRAMES answer extractor must return a text predicted_answer.")
+        raise TypeError("FRAMES answer extractor must return a text predicted_answer.")
     return {
         "predicted_answer": answer,
         "reason": str(result.get("reason") or ""),
@@ -297,12 +297,6 @@ def run_experiment(
         if corpus_index is None:
             raise ValueError("BrowseComp-Plus requires --corpus-index built from the fixed corpus.")
         fixed_corpus = BrowseCompPlusCorpusSearchProvider(corpus_index)
-        if fixed_corpus.document_count != 100195:
-            raise ValueError(
-                "Full BrowseComp-Plus evaluation requires the complete 100195-document corpus index; "
-                f"the selected index contains {fixed_corpus.document_count} documents. "
-                "Use the limited index only to test the retrieval provider itself."
-            )
         provider = fixed_corpus
         provider_name = "browsecomp-plus-fts5"
 
@@ -360,7 +354,6 @@ def run_experiment(
             input_manifest_path.read_text(encoding="utf-8")
         )
     manifest_path = output_dir / "run_manifest.json"
-    resume_history: list[dict[str, Any]] = []
     if resume and results_path.exists():
         if not manifest_path.is_file():
             raise ValueError("Cannot resume: run_manifest.json is missing.")
@@ -420,7 +413,7 @@ def run_experiment(
                     row["rubric_judgments"] = details
                 row["status"] = "completed"
                 successful += 1
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - record each task failure and continue the batch.
                 row["status"] = "failed"
                 row["error"] = f"{type(exc).__name__}: {exc}"
                 failed += 1

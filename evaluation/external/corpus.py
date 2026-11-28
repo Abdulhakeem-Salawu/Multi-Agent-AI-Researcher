@@ -121,14 +121,10 @@ def build_browsecomp_plus_index(
             "content_policy": metadata["content_policy"],
         }
     except Exception:
-        connection.close()
         output.unlink(missing_ok=True)
         raise
     finally:
-        try:
-            connection.close()
-        except Exception:
-            pass
+        connection.close()
 
 
 class BrowseCompPlusCorpusSearchProvider:
