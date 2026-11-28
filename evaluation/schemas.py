@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Literal
+import datetime
+import typing
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
-ClaimStatus = Literal["supported", "contradicted", "insufficient_evidence", "uncertain"]
-RubricDimension = Literal[
+ClaimStatus = typing.Literal["supported", "contradicted", "insufficient_evidence", "uncertain"]
+RubricDimension = typing.Literal[
     "completeness",
     "analytical_depth",
     "factual_support",
@@ -25,7 +25,7 @@ class StrictModel(BaseModel):
 class DatasetProvenance(StrictModel):
     collection_method: str = Field(min_length=8)
     corpus_description: str = Field(min_length=8)
-    collected_at: datetime
+    collected_at: datetime.datetime
     dataset_license: str
     curation_notes: str = ""
 
@@ -35,16 +35,16 @@ class SnapshotSource(StrictModel):
     title: str = Field(min_length=1)
     url: HttpUrl
     publisher: str = ""
-    source_type: Literal[
+    source_type: typing.Literal[
         "primary", "secondary", "official_record", "dataset", "documentation", "other"
     ] = "other"
-    published_at: datetime | None = None
-    retrieved_at: datetime
+    published_at: datetime.datetime | None = None
+    retrieved_at: datetime.datetime
     content_path: str | None = None
     sha256: str | None = Field(default=None, pattern=r"^[a-fA-F0-9]{64}$")
     controlled_snapshot_ref: str | None = None
     license_id: str = ""
-    redistribution: Literal[
+    redistribution: typing.Literal[
         "redistributable", "excerpt_only", "metadata_only", "restricted", "unknown"
     ] = "unknown"
 
@@ -52,7 +52,7 @@ class SnapshotSource(StrictModel):
 class EvidenceSnapshot(StrictModel):
     snapshot_id: str = Field(min_length=3)
     frozen: bool = False
-    frozen_at: datetime | None = None
+    frozen_at: datetime.datetime | None = None
     capture_method: str = Field(min_length=3)
     sources: list[SnapshotSource] = Field(default_factory=list)
 
@@ -85,7 +85,7 @@ class ClaimJudgment(StrictModel):
 
 class CaseAnnotation(StrictModel):
     annotator_id: str = Field(min_length=2)
-    annotated_at: datetime
+    annotated_at: datetime.datetime
     source_relevance: list[SourceRelevanceJudgment] = Field(default_factory=list)
     claim_judgments: list[ClaimJudgment] = Field(default_factory=list)
     notes: str = ""
@@ -93,7 +93,7 @@ class CaseAnnotation(StrictModel):
 
 class CaseAdjudication(StrictModel):
     adjudicator_id: str = Field(min_length=2)
-    adjudicated_at: datetime
+    adjudicated_at: datetime.datetime
     source_relevance: list[SourceRelevanceJudgment] = Field(default_factory=list)
     claim_judgments: list[ClaimJudgment] = Field(default_factory=list)
     rationale_for_disagreements: str = ""
@@ -103,7 +103,7 @@ class BenchmarkCase(StrictModel):
     case_id: str = Field(pattern=r"^[A-Za-z0-9_.:-]+$")
     question: str = Field(min_length=8)
     scope: str = Field(min_length=5)
-    as_of: datetime | None = None
+    as_of: datetime.datetime | None = None
     topic_tags: list[str] = Field(default_factory=list)
     snapshot: EvidenceSnapshot
     expected_claims: list[GoldClaim] = Field(default_factory=list)
@@ -112,10 +112,10 @@ class BenchmarkCase(StrictModel):
 
 
 class BenchmarkDataset(StrictModel):
-    schema_version: Literal["1.0"] = "1.0"
+    schema_version: typing.Literal["1.0"] = "1.0"
     benchmark_id: str = Field(min_length=3)
     version: str = Field(min_length=1)
-    status: Literal["draft", "ready"] = "draft"
+    status: typing.Literal["draft", "ready"] = "draft"
     description: str = Field(min_length=8)
     provenance: DatasetProvenance
     cases: list[BenchmarkCase] = Field(default_factory=list)
@@ -124,7 +124,7 @@ class BenchmarkDataset(StrictModel):
 class ClaimAlignment(StrictModel):
     benchmark_claim_id: str | None = None
     report_claim_id: str | None = None
-    relation: Literal["equivalent", "partial", "missing", "extra"]
+    relation: typing.Literal["equivalent", "partial", "missing", "extra"]
     rationale: str = Field(min_length=5)
 
 
@@ -137,7 +137,7 @@ class RubricScore(StrictModel):
 
 class RunOutputAnnotation(StrictModel):
     annotator_id: str = Field(min_length=2)
-    annotated_at: datetime
+    annotated_at: datetime.datetime
     claim_alignments: list[ClaimAlignment] = Field(default_factory=list)
     rubric_scores: list[RubricScore] = Field(default_factory=list)
     notes: str = ""
@@ -145,14 +145,14 @@ class RunOutputAnnotation(StrictModel):
 
 class RunOutputAdjudication(StrictModel):
     adjudicator_id: str = Field(min_length=2)
-    adjudicated_at: datetime
+    adjudicated_at: datetime.datetime
     claim_alignments: list[ClaimAlignment] = Field(default_factory=list)
     rubric_scores: list[RubricScore] = Field(default_factory=list)
     rationale_for_disagreements: str = ""
 
 
 class RunAnnotation(StrictModel):
-    schema_version: Literal["1.0"] = "1.0"
+    schema_version: typing.Literal["1.0"] = "1.0"
     benchmark_id: str
     benchmark_version: str
     case_id: str
@@ -161,6 +161,6 @@ class RunAnnotation(StrictModel):
     model_name: str
     model_version: str = ""
     prompt_versions: dict[str, str | int] = Field(default_factory=dict)
-    created_at: datetime
+    created_at: datetime.datetime
     annotations: list[RunOutputAnnotation] = Field(default_factory=list)
     adjudication: RunOutputAdjudication | None = None

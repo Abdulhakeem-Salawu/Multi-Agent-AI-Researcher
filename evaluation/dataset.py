@@ -78,11 +78,13 @@ def validate_dataset(
                         errors.append(
                             f"{prefix}: restricted source {source.source_id} must not commit its full text or a repository snapshot hash."
                         )
-                elif source.redistribution == "metadata_only":
-                    if source.content_path or source.sha256 or source.controlled_snapshot_ref:
-                        errors.append(
-                            f"{prefix}: metadata-only source {source.source_id} must not include a stored text snapshot."
-                        )
+                elif (
+                    source.redistribution == "metadata_only"
+                    and (source.content_path or source.sha256 or source.controlled_snapshot_ref)
+                ):
+                    errors.append(
+                        f"{prefix}: metadata-only source {source.source_id} must not include a stored text snapshot."
+                    )
                 if not source.license_id or source.redistribution == "unknown":
                     errors.append(
                         f"{prefix}: source {source.source_id} requires license_id and explicit redistribution status."
