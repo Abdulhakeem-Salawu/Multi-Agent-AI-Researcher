@@ -134,6 +134,39 @@ research-eval path/to/report.json \
 
 Retrieval relevance labels must be human-reviewed. The current metrics measure retrieval ranking, citation bookkeeping and verification coverage; they do not independently establish factual truth. See evaluation/README.md before creating CI quality thresholds.
 
+## Human-adjudicated ResearchBench
+
+The benchmark tooling is implemented, but the benchmark corpus is intentionally empty. Start with `evaluation/datasets/benchmark_template.json`; it is marked `draft` and contains no gold claims or performance labels.
+
+Each case is designed to hold a frozen evidence snapshot, provenance and licensing metadata, atomic expected claims, two independent source/claim annotations, and a final adjudication. The seven-dimension report rubric and detailed instructions are in `evaluation/rubric.json` and `evaluation/ANNOTATION_GUIDE.md`. A run annotation template records the benchmark version, Git commit, model and prompt versions.
+
+Validate the schema template:
+
+```bash
+research-bench validate evaluation/datasets/benchmark_template.json
+```
+
+Validate a populated release and verify locally stored snapshots:
+
+```bash
+research-bench validate evaluation/datasets/benchmark_v1.json --require-ready --verify-snapshots --repo-root .
+research-bench agreement evaluation/datasets/benchmark_v1.json --case-id CASE_ID
+```
+
+Score a report only after two independent human reviews and adjudication:
+
+```bash
+research-bench score \
+  --dataset evaluation/datasets/benchmark_v1.json \
+  --case-id CASE_ID \
+  --report path/to/report.json \
+  --run-annotation path/to/run_annotation.json
+```
+
+The scorer reports graded retrieval, claim alignment/coverage, four-way claim-status classification, evidence-source precision/recall, exact quote matches and human report-rubric scores. It does not treat the model's own verifier or reviewer output as ground truth.
+
+Sources marked `restricted` must use a `controlled_snapshot_ref` and must not be committed as full text. `metadata_only` sources cannot be cited as stored evidence spans. Locally stored redistributable or excerpt-permitted snapshots are SHA-256 checked.
+
 ## Design decisions
 
 - **LangGraph owns orchestration.** Search, retrieval, model access and verification remain ordinary Python services behind small interfaces.
@@ -163,7 +196,7 @@ Retrieval relevance labels must be human-reviewed. The current metrics measure r
 1. **Foundation:** LangGraph fan-out/fan-in, structured contracts, deterministic source ordering, report persistence and CI.
 2. **Claim verification:** atomic extraction, parallel verification, quote-span validation and a bounded research-gap loop. Implemented in this milestone; still requires calibration against human-labelled claims.
 3. **Observability:** Langfuse traces/prompts/evaluations, OpenTelemetry instrumentation and Prometheus/Grafana operational metrics.
-4. **Evaluation:** expand retrieval and report-quality benchmarks with human-adjudicated examples and CI regression gates.
+4. **Evaluation:** human-adjudicated ResearchBench schemas, snapshot validation, inter-annotator agreement, report scoring and the annotation guide are implemented. Populate, annotate and adjudicate a real corpus before setting CI quality thresholds.
 5. **Runtime:** durable external checkpoint storage, API hardening and Modal deployment.
 
 This remains an evolving research system, not a claim of production readiness. Model-produced verification and review outputs are fallible and must be measured against expert annotations.

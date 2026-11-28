@@ -1,0 +1,93 @@
+{
+  "rubric_version": "1.0",
+  "scale": {
+    "0": "Absent, materially incorrect, or unusable.",
+    "1": "Major deficiencies; only a small portion of the criterion is met.",
+    "2": "Partially meets the criterion but has meaningful gaps.",
+    "3": "Meets the criterion with only minor omissions.",
+    "4": "Fully meets the criterion with clear, specific support."
+  },
+  "dimensions": [
+    {
+      "dimension": "completeness",
+      "description": "Covers the important aspects of the question and stated scope.",
+      "focus": [
+        "required subtopics",
+        "important omissions",
+        "scope alignment"
+      ]
+    },
+    {
+      "dimension": "analytical_depth",
+      "description": "Explains relationships, trade-offs, causes and implications instead of merely listing facts.",
+      "focus": [
+        "reasoning quality",
+        "comparison and synthesis",
+        "evidence versus inference"
+      ]
+    },
+    {
+      "dimension": "factual_support",
+      "description": "Material factual statements are supported by the frozen evidence set.",
+      "focus": [
+        "claim correctness against snapshot",
+        "evidence sufficiency",
+        "unsupported assertions"
+      ]
+    },
+    {
+      "dimension": "citation_quality",
+      "description": "Citations identify sources that actually support the associated statements.",
+      "focus": [
+        "citation-to-claim match",
+        "source traceability",
+        "citation completeness"
+      ]
+    },
+    {
+      "dimension": "uncertainty_calibration",
+      "description": "The report appropriately communicates ambiguity, disagreement and evidence gaps.",
+      "focus": [
+        "abstention when evidence is insufficient",
+        "contradictions",
+        "confidence proportional to evidence"
+      ]
+    },
+    {
+      "dimension": "temporal_accuracy",
+      "description": "Time-sensitive claims respect the case's as-of date and distinguish publication from retrieval dates.",
+      "focus": [
+        "as-of alignment",
+        "date correctness",
+        "outdated source handling"
+      ]
+    },
+    {
+      "dimension": "presentation",
+      "description": "The report is readable, structured and appropriate for the requested audience and output.",
+      "focus": [
+        "organization",
+        "clarity",
+        "terminology"
+      ]
+    }
+  ],
+  "source_relevance": {
+    "0": "Irrelevant or misleading for the question.",
+    "1": "Tangential background; does not directly answer or substantiate the question.",
+    "2": "Relevant and useful context or partial support.",
+    "3": "Directly answers or strongly substantiates an important part of the question."
+  },
+  "claim_alignment": {
+    "equivalent": "Generated claim expresses the same proposition and material scope as the benchmark claim.",
+    "partial": "Generated claim overlaps but omits or changes a material qualifier, condition or scope.",
+    "missing": "Benchmark claim is not represented in the generated report.",
+    "extra": "Generated report includes a material claim with no corresponding benchmark claim."
+  },
+  "claim_status": {
+    "supported": "Frozen sources directly support the proposition at its stated scope.",
+    "contradicted": "Frozen sources directly conflict with the proposition.",
+    "insufficient_evidence": "Frozen source set cannot establish or refute the proposition.",
+    "uncertain": "Sources are ambiguous, materially inconsistent, or cannot be confidently interpreted."
+  }
+}
