@@ -105,9 +105,8 @@ def _complete_form(path: Path, annotator_id: str) -> Path:
             "rationale": "The source directly addresses the question.",
         }
     ]
-    form["claim_judgments"] = [
+    form["claim_judgments"][0].update(
         {
-            "claim_id": "TEST-C1",
             "status": "supported",
             "evidence_spans": [
                 {
@@ -119,7 +118,7 @@ def _complete_form(path: Path, annotator_id: str) -> Path:
             ],
             "rationale": "The exact frozen passage directly supports the proposition.",
         }
-    ]
+    )
     form["annotator_id"] = annotator_id
     path.write_text(json.dumps(form, indent=2), encoding="utf-8")
     return path
