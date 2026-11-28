@@ -49,30 +49,29 @@ def create_app() -> FastAPI:
     def research(request: ResearchRequest) -> dict:
         thread_id = str(uuid4())
         try:
-            with track_research_run("api"):
-                with observation(
-                    "research.run",
-                    metadata={
-                        "research.entrypoint": "api",
-                        "research.run_id": thread_id,
-                    },
-                ) as span:
-                    graph = build_default_graph()
-                    result = graph.invoke(
-                        {"question": request.question},
-                        config={"configurable": {"thread_id": thread_id}},
+            with track_research_run("api"), observation(
+                "research.run",
+                metadata={
+                    "research.entrypoint": "api",
+                    "research.run_id": thread_id,
+                },
+            ) as span:
+                graph = build_default_graph()
+                result = graph.invoke(
+                    {"question": request.question},
+                    config={"configurable": {"thread_id": thread_id}},
+                )
+                report = result["report"]
+                if hasattr(span, "update"):
+                    span.update(
+                        output={
+                            "run_id": report.get("run_id"),
+                            "source_count": len(report.get("sources", [])),
+                            "claim_count": len(report.get("claim_verifications", [])),
+                            "research_rounds": report.get("research_rounds", 0),
+                        }
                     )
-                    report = result["report"]
-                    if hasattr(span, "update"):
-                        span.update(
-                            output={
-                                "run_id": report.get("run_id"),
-                                "source_count": len(report.get("sources", [])),
-                                "claim_count": len(report.get("claim_verifications", [])),
-                                "research_rounds": report.get("research_rounds", 0),
-                            }
-                        )
-                    return report
+                return report
         except (RuntimeError, ValueError) as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         except Exception as exc:
