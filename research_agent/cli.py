@@ -3,9 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 
-from .graph import build_default_graph
 from research_observability.metrics import track_research_run
-from research_observability.tracing import observation
+from research_observability.tracing import flush_telemetry, observation
+
+from .graph import build_default_graph
 
 
 def main() -> None:
@@ -14,8 +15,11 @@ def main() -> None:
     parser.add_argument("--output", help="Optional path for JSON report output")
     args = parser.parse_args()
 
-    with track_research_run("cli"):
-        with observation("research.run", metadata={"research.entrypoint": "cli"}) as span:
+    try:
+        with (
+            track_research_run("cli"),
+            observation("research.run", metadata={"research.entrypoint": "cli"}) as span,
+        ):
             result = build_default_graph().invoke({"question": args.question})
             report = result["report"]
             if hasattr(span, "update"):
@@ -27,6 +31,8 @@ def main() -> None:
                         "research_rounds": report.get("research_rounds", 0),
                     }
                 )
+    finally:
+        flush_telemetry()
 
     rendered = json.dumps(report, indent=2, ensure_ascii=False)
     if args.output:

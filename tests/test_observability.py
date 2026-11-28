@@ -65,3 +65,15 @@ def test_observation_and_instrumented_node_are_safe_without_credentials(monkeypa
         result = node({"question": "hello research"})
 
     assert result == {"answer": "hello research"}
+
+
+
+def test_flush_telemetry_is_safe_without_external_services(monkeypatch):
+    from research_observability.tracing import flush_telemetry
+
+    monkeypatch.delenv("LANGFUSE_PUBLIC_KEY", raising=False)
+    monkeypatch.delenv("LANGFUSE_SECRET_KEY", raising=False)
+    monkeypatch.delenv("OTEL_EXPORTER_OTLP_ENDPOINT", raising=False)
+    monkeypatch.delenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", raising=False)
+
+    flush_telemetry()

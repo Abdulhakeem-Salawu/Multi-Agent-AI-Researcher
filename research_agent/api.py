@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Response
@@ -9,7 +10,7 @@ from research_agent.dependencies import ResearchSettings
 from research_agent.graph import build_default_graph
 from research_core.storage import ResearchRunStore
 from research_observability.metrics import prometheus_payload, track_research_run
-from research_observability.tracing import observation
+from research_observability.tracing import flush_telemetry, observation
 
 
 class ResearchRequest(BaseModel):
@@ -17,10 +18,16 @@ class ResearchRequest(BaseModel):
 
 
 def create_app() -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        yield
+        flush_telemetry()
+
     app = FastAPI(
         title="Multi-Agent AI Researcher",
         version="0.1.0",
         description="Evidence-grounded multi-agent research orchestrated with LangGraph.",
+        lifespan=lifespan,
     )
 
     @app.get("/health")

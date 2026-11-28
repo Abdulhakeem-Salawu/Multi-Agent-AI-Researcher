@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
-from functools import wraps
 import logging
 import os
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from functools import wraps
 from threading import Lock
 from time import perf_counter
-from typing import Any, Callable, Iterator, TypeVar
+from typing import Any, TypeVar
 
 from .metrics import record_node
 from .prompts import current_prompt_metadata
@@ -127,8 +128,8 @@ def observation(
                             else type(exc).__name__
                         ),
                     )
-                except Exception:  # noqa: BLE001 - preserve the original application exception.
-                    pass
+                except Exception as telemetry_exc:  # noqa: BLE001 - preserve the original application exception.
+                    logger.debug("Could not annotate failed Langfuse observation: %s", telemetry_exc)
                 manager.__exit__(type(exc), exc, exc.__traceback__)
                 raise
             else:
@@ -187,3 +188,23 @@ def instrument_node(name: str, function: F) -> F:
                 record_node(name, outcome, perf_counter() - started)
 
     return wrapped  # type: ignore[return-value]
+
+
+
+def flush_telemetry(timeout_millis: int = 5000) -> None:
+    """Flush buffered Langfuse and OpenTelemetry telemetry during process shutdown."""
+    client = get_langfuse_client()
+    if client is not None:
+        try:
+            client.flush()
+        except Exception as exc:  # noqa: BLE001 - telemetry shutdown must not fail the application.
+            logger.warning("Could not flush Langfuse telemetry: %s", exc)
+
+    try:
+        from opentelemetry import trace
+
+        provider = trace.get_tracer_provider()
+        if hasattr(provider, "force_flush"):
+            provider.force_flush(timeout_millis=timeout_millis)
+    except Exception as exc:  # noqa: BLE001 - telemetry shutdown must not fail the application.
+        logger.debug("Could not flush OpenTelemetry spans: %s", exc)

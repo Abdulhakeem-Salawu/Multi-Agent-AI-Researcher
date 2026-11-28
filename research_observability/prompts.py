@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import logging
+import os
+from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-import logging
-import os
-from typing import Iterator
 
 logger = logging.getLogger(__name__)
 
