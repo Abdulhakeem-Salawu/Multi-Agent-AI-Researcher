@@ -4,7 +4,7 @@ import pytest
 
 modal = pytest.importorskip("modal")
 
-from evaluation.external.modal_app import safe_run_tag, validate_remote_model_endpoint  # noqa: E402
+from evaluation.external.modal_app import safe_run_tag, validate_remote_model_endpoint
 
 
 def test_modal_run_tag_is_safe_for_volume_paths():

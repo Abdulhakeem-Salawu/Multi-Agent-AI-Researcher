@@ -158,7 +158,7 @@ def _clone_pinned_browsecomp_code() -> Path:
             timeout=180,
         )
         subprocess.run(
-            ["git", "-C", str(checkout), "checkout", "--quiet", BROWSECOMP_CODE_REVISION],
+            ["git", "-C", str(checkout), "checkout", "--quiet", BROWSECOMP_PLUS_CODE_REVISION],
             check=True,
             capture_output=True,
             text=True,
@@ -178,7 +178,7 @@ def _ensure_browsecomp_queries() -> tuple[Path, dict[str, Any]]:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             valid = (
                 manifest.get("upstream_revision") == BROWSECOMP_PLUS_QUERY_REVISION
-                and manifest.get("upstream_decoder_revision") == BROWSECOMP_CODE_REVISION
+                and manifest.get("upstream_decoder_revision") == BROWSECOMP_PLUS_CODE_REVISION
                 and manifest.get("complete_split") is True
                 and manifest.get("sha256") == _file_sha256(path)
                 and manifest.get("record_count") == 830
