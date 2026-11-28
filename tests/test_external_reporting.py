@@ -122,7 +122,7 @@ def test_browsecomp_summary_keeps_evidence_and_gold_metrics_separate(tmp_path: P
                         "evidence": {"recall_at_k": 0.5, "ndcg_at_k": 0.4},
                         "gold": {"recall_at_k": 1.0, "ndcg_at_k": 0.9},
                     },
-                    "answer_judgment": {"correct": True, "judge_type": "custom_llm_judge"},
+                    "answer_judgment": {"correct": True, "judge_type": "same_model_llm_judge"},
                 },
             }
         ],
@@ -131,6 +131,7 @@ def test_browsecomp_summary_keeps_evidence_and_gold_metrics_separate(tmp_path: P
     assert summary["evidence_retrieval_metrics"]["recall_at_k"] == 0.5
     assert summary["gold_retrieval_metrics"]["recall_at_k"] == 1.0
     assert summary["answer_judgment"]["accuracy"] == 1.0
+    assert summary["answer_judgment"]["judge_type"] == "same_model_llm_judge"
 
 
 def test_summary_rejects_mixed_datasets_and_malformed_jsonl(tmp_path: Path):
@@ -148,3 +149,61 @@ def test_summary_rejects_mixed_datasets_and_malformed_jsonl(tmp_path: Path):
     malformed.write_text("{not-json}\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Malformed predictions"):
         summarize_predictions(malformed)
+
+
+
+def test_frames_summary_identifies_same_model_answer_extraction(tmp_path: Path):
+    predictions = _write(
+        tmp_path / "frames-same-model.jsonl",
+        [
+            {
+                "dataset_id": "frames",
+                "task_id": "f-same",
+                "status": "completed",
+                "extracted_answer": {
+                    "extractor_model": "Qwen/Qwen3-1.7B",
+                    "extractor_type": "same_model_answer_extraction",
+                    "judge_type": "same_model_llm_judge",
+                },
+                "metrics": {
+                    "answer": {"exact_match": 1.0, "token_f1": 1.0},
+                    "retrieval": {"recall_at_k": 0.5},
+                },
+            }
+        ],
+    )
+
+    summary = summarize_predictions(predictions)
+
+    assert summary["answer_extraction"]["model"] == "Qwen/Qwen3-1.7B"
+    assert summary["answer_extraction"]["judge_type"] == "same_model_llm_judge"
+
+
+def test_drb2_summary_discloses_same_model_judge(tmp_path: Path):
+    predictions = _write(
+        tmp_path / "drb-same-model.jsonl",
+        [
+            {
+                "dataset_id": "deepresearch-bench-ii",
+                "task_id": "d-same",
+                "status": "completed",
+                "judge": {
+                    "model": "Qwen/Qwen3-1.7B",
+                    "type": "same_model_llm_judge",
+                },
+                "metrics": {
+                    "report_rubric": {
+                        "rubric_count": 1,
+                        "satisfied_count": 1,
+                        "not_mentioned_count": 0,
+                        "blocked_reference_count": 0,
+                        "dimensions": {},
+                    }
+                },
+            }
+        ],
+    )
+
+    summary = summarize_predictions(predictions)
+
+    assert summary["judge_type"] == "same_model_llm_judge"

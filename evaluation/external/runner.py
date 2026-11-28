@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from research_core.llm import OpenAICompatibleChatModel
+from research_core.llm import ChatModel, OpenAICompatibleChatModel
 
 from .adapters import load_browsecomp_plus_jsonl, load_deepresearch_bench_ii_jsonl, load_frames_tsv
 from .corpus import BrowseCompPlusCorpusSearchProvider
@@ -60,7 +60,7 @@ def _parse_json(raw: str) -> dict[str, Any]:
     return value
 
 
-def _drb2_judge(item: Any, report: dict[str, Any], judge: OpenAICompatibleChatModel):
+def _drb2_judge(item: Any, report: dict[str, Any], judge: ChatModel):
     rubric_rows = (item.annotations or {}).get("rubrics", [])
     expected = {row["rubric_id"]: row for row in rubric_rows}
     report_text = str(report.get("answer", ""))[:150000]
@@ -119,7 +119,13 @@ def _drb2_judge(item: Any, report: dict[str, Any], judge: OpenAICompatibleChatMo
     return score_drb2_rubric_judgments(item, scores), details
 
 
-def _browsecomp_answer_judge(item: Any, report: dict[str, Any], judge: OpenAICompatibleChatModel):
+def _browsecomp_answer_judge(
+    item: Any,
+    report: dict[str, Any],
+    judge: ChatModel,
+    *,
+    judge_type: str = "custom_llm_judge",
+):
     raw = judge.complete(
         "Judge if the report materially and correctly answers this fact-seeking question compared "
         "with the reference answer. Accept equivalent wording; reject vague, incomplete or contradictory "
@@ -137,12 +143,18 @@ def _browsecomp_answer_judge(item: Any, report: dict[str, Any], judge: OpenAICom
     return {
         "correct": result["correct"],
         "reason": str(result.get("reason") or ""),
-        "judge_model": judge.model,
-        "judge_type": "custom_llm_judge",
+        "judge_model": _chat_model_name(judge),
+        "judge_type": judge_type,
     }
 
 
-def _frames_answer_extract(item: Any, report: dict[str, Any], judge: OpenAICompatibleChatModel):
+def _frames_answer_extract(
+    item: Any,
+    report: dict[str, Any],
+    judge: ChatModel,
+    *,
+    judge_type: str = "custom_llm_judge",
+):
     raw = judge.complete(
         "Extract the report's direct final answer to the FRAMES question. Do not solve the question "
         "again or add facts. Return the shortest answer supported by the report, preserving names, "
@@ -161,9 +173,23 @@ def _frames_answer_extract(item: Any, report: dict[str, Any], judge: OpenAICompa
     return {
         "predicted_answer": answer,
         "reason": str(result.get("reason") or ""),
-        "extractor_model": judge.model,
-        "extractor_type": "custom_llm_answer_extraction",
+        "extractor_model": _chat_model_name(judge),
+        "extractor_type": (
+            "same_model_answer_extraction"
+            if judge_type == "same_model_llm_judge"
+            else "custom_llm_answer_extraction"
+        ),
+        "judge_type": judge_type,
     }
+
+
+def _chat_model_name(model: ChatModel) -> str:
+    return str(
+        getattr(model, "model_id", None)
+        or getattr(model, "model", None)
+        or type(model).__name__
+    )
+
 
 def _prepare_resume_manifest(
     previous_manifest: dict[str, Any],
@@ -180,6 +206,8 @@ def _prepare_resume_manifest(
         "language_filter",
         "retrieval_k",
         "agent_model",
+        "agent_backend",
+        "agent_model_revision",
         "agent_base_url",
         "agent_max_queries",
         "agent_max_results_per_query",
@@ -187,6 +215,7 @@ def _prepare_resume_manifest(
         "agent_max_research_rounds",
         "retrieval_mode",
         "judge_model",
+        "judge_model_revision",
         "judge_base_url",
         "judge_type",
         "search_provider",
@@ -240,6 +269,11 @@ def run_experiment(
     corpus_index: str | Path | None = None,
     resume: bool = False,
     language: str | None = None,
+    agent_model: ChatModel | None = None,
+    agent_model_id: str | None = None,
+    evaluator_model: ChatModel | None = None,
+    evaluator_model_id: str | None = None,
+    model_revision: str | None = None,
 ) -> dict[str, Any]:
     """Run a slice of an external dataset through the actual LangGraph research graph."""
     from research_agent.dependencies import build_default_dependencies
@@ -277,8 +311,13 @@ def run_experiment(
     if not selected:
         raise ValueError("No records selected; check --offset, --limit and --language.")
 
-    judge = None
-    if dataset_id in {"deepresearch-bench-ii", "browsecomp-plus", "frames"}:
+    judge: ChatModel | None = evaluator_model or agent_model
+    resolved_judge_type = (
+        "same_model_llm_judge"
+        if judge is not None and judge is agent_model
+        else "custom_llm_judge"
+    )
+    if judge is None and dataset_id in {"deepresearch-bench-ii", "browsecomp-plus", "frames"}:
         base_url = os.getenv("EVAL_JUDGE_LLM_BASE_URL")
         model = os.getenv("EVAL_JUDGE_LLM_MODEL")
         if not base_url or not model:
@@ -303,6 +342,8 @@ def run_experiment(
     dependencies = build_default_dependencies(
         search_provider=provider,
         search_provider_name=provider_name,
+        llm=agent_model,
+        llm_model=agent_model_id,
     )
     dependencies.max_question_chars = 20000
     dependencies.store = None
@@ -334,15 +375,28 @@ def run_experiment(
         "language_filter": language,
         "retrieval_k": k,
         "agent_model": dependencies.llm_model,
-        "agent_base_url": os.getenv("LLM_BASE_URL", "http://localhost:11434/v1"),
+        "agent_backend": type(dependencies.llm).__name__ if dependencies.llm else None,
+        "agent_model_revision": (
+            model_revision
+            or getattr(dependencies.llm, "resolved_revision", None)
+        ),
+        "agent_base_url": getattr(dependencies.llm, "base_url", None),
         "agent_max_queries": dependencies.max_queries,
         "agent_max_results_per_query": dependencies.max_results_per_query,
         "agent_max_evidence_sources": dependencies.max_evidence_sources,
         "agent_max_research_rounds": dependencies.max_research_rounds,
         "retrieval_mode": dependencies.retrieval_mode,
-        "judge_model": judge.model if judge else None,
-        "judge_base_url": os.getenv("EVAL_JUDGE_LLM_BASE_URL"),
-        "judge_type": "custom_llm_judge" if judge else None,
+        "judge_model": (
+            (evaluator_model_id or _chat_model_name(judge))
+            if judge is not None
+            else None
+        ),
+        "judge_model_revision": (
+            model_revision if judge is evaluator_model or judge is agent_model else None
+        ),
+        "judge_base_url": getattr(judge, "base_url", None) if judge else None,
+        "judge_type": resolved_judge_type if judge else None,
+        "model_revision": model_revision or getattr(agent_model, "resolved_revision", None),
         "search_provider": provider_name,
         "corpus_revision": getattr(fixed_corpus, "revision", None),
         "corpus_index_sha256": _sha256(Path(corpus_index)) if corpus_index else None,
@@ -380,6 +434,11 @@ def run_experiment(
                 "annotation_type": record.annotation_type,
                 "metadata": record.metadata,
                 "started_at": datetime.now(timezone.utc).isoformat(),
+                "agent_model": dependencies.llm_model,
+                "agent_model_revision": manifest.get("agent_model_revision"),
+                "judge_model_revision": manifest.get("judge_model_revision"),
+                "judge_model": evaluator_model_id or (_chat_model_name(judge) if judge else None),
+                "judge_type": resolved_judge_type if judge else None,
             }
             try:
                 report = graph.invoke({"question": record.question})["report"]
@@ -393,7 +452,14 @@ def run_experiment(
                 row["retrieved_source_urls"] = urls
                 row["retrieved_docids"] = docids
                 if dataset_id == "frames":
-                    extracted_answer = _frames_answer_extract(record, report, judge)
+                    if judge is None:
+                        raise RuntimeError("FRAMES answer extraction requires an evaluator model.")
+                    extracted_answer = _frames_answer_extract(
+                        record,
+                        report,
+                        judge,
+                        judge_type=resolved_judge_type,
+                    )
                     row["extracted_answer"] = extracted_answer
                     row["metrics"] = {
                         "answer": score_frames_answer(
@@ -403,14 +469,28 @@ def run_experiment(
                         "retrieval": score_frames_retrieval(record, urls, k=k),
                     }
                 elif dataset_id == "browsecomp-plus":
+                    if judge is None:
+                        raise RuntimeError("BrowseComp-Plus answer judging requires an evaluator model.")
                     row["metrics"] = {
                         "retrieval": score_browsecomp_plus_retrieval(record, docids, k=k),
-                        "answer_judgment": _browsecomp_answer_judge(record, report, judge),
+                        "answer_judgment": _browsecomp_answer_judge(
+                            record,
+                            report,
+                            judge,
+                            judge_type=resolved_judge_type,
+                        ),
                     }
                 else:
+                    if judge is None:
+                        raise RuntimeError("DRB II rubric scoring requires an evaluator model.")
                     rubric_metrics, details = _drb2_judge(record, report, judge)
                     row["metrics"] = {"report_rubric": rubric_metrics}
                     row["rubric_judgments"] = details
+                    row["judge"] = {
+                        "model": _chat_model_name(judge),
+                        "type": resolved_judge_type,
+                        "revision": model_revision,
+                    }
                 row["status"] = "completed"
                 successful += 1
             except Exception as exc:  # noqa: BLE001 - record each task failure and continue the batch.

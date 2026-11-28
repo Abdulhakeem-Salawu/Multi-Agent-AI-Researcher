@@ -27,6 +27,8 @@ load_dotenv()
 
 APP_NAME = "multi-agent-ai-researcher-benchmarks"
 VOLUME_NAME = "multi-agent-ai-research-benchmarks"
+QWEN_CACHE_VOLUME_NAME = "multi-agent-ai-research-qwen-cache"
+DEFAULT_MODEL_ID = "Qwen/Qwen3-1.7B"
 VOLUME_ROOT = Path("/mnt/research-benchmarks")
 DATA_ROOT = VOLUME_ROOT / "data" / "external"
 RUNS_ROOT = VOLUME_ROOT / "runs"
@@ -65,6 +67,7 @@ runtime_secret = modal.Secret.from_dict(
     _normalize_secret_values({key: os.getenv(key) for key in RUNTIME_SECRET_KEYS})
 )
 benchmark_volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
+qwen_cache_volume = modal.Volume.from_name(QWEN_CACHE_VOLUME_NAME, create_if_missing=True)
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -90,7 +93,21 @@ image = (
     )
 )
 
+qwen_image = image.pip_install(
+    "torch>=2.6",
+    "transformers>=4.51,<6.0",
+    "accelerate>=1.0",
+    "safetensors>=0.4",
+)
+
 app = modal.App(APP_NAME)
+
+
+def validate_hf_model_id(model_id: str) -> str:
+    value = model_id.strip()
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+        raise ValueError("model_id must be a Hugging Face repo ID such as Qwen/Qwen3-1.7B.")
+    return value
 
 
 def safe_run_tag(value: str) -> str:
@@ -249,22 +266,89 @@ def _validate_runtime_config(dataset_id: str) -> None:
             )
         os.environ["TAVILY_API_KEY"] = tavily_key
 
-    required = [
-        "LLM_BASE_URL",
-        "LLM_MODEL",
-        "EVAL_JUDGE_LLM_BASE_URL",
-        "EVAL_JUDGE_LLM_MODEL",
-    ]
-    missing = [key for key in required if not os.getenv(key)]
-    if missing:
-        raise RuntimeError(
-            "Missing model endpoint secrets for this experiment: " + ", ".join(missing)
+
+@app.function(
+    image=qwen_image,
+    gpu="L4",
+    cpu=8,
+    memory=32768,
+    timeout=6 * 60 * 60,
+    max_containers=1,
+    volumes={
+        str(VOLUME_ROOT): benchmark_volume,
+        "/root/.cache/huggingface": qwen_cache_volume,
+    },
+    secrets=[runtime_secret],
+)
+def execute_qwen_experiment(
+    dataset_id: str,
+    input_path: str,
+    output_dir: str,
+    model_id: str = DEFAULT_MODEL_ID,
+    limit: int = 3,
+    offset: int = 0,
+    language: str = "",
+    include_noncommercial: bool = False,
+    corpus_index: str = "",
+    source_commit: str = "",
+) -> dict[str, Any]:
+    """Load the selected Hugging Face model once and score a benchmark slice on an L4."""
+    model_id = validate_hf_model_id(model_id)
+    benchmark_volume.reload()
+    qwen_cache_volume.reload()
+    os.environ["RESEARCH_DB_PATH"] = "/tmp/modal-research-benchmark-runs.sqlite3"
+    if source_commit:
+        os.environ["GITHUB_SHA"] = source_commit
+
+    from research_core.llm import TransformersQwen3ChatModel
+
+    try:
+        chat_model = TransformersQwen3ChatModel(
+            model_id,
+            revision="main",
+            hf_token=os.getenv("HF_TOKEN"),
+            max_new_tokens=4096,
+            max_input_tokens=24576,
+            enable_thinking=False,
         )
-    validate_remote_model_endpoint(os.environ["LLM_BASE_URL"], "LLM_BASE_URL")
-    validate_remote_model_endpoint(
-        os.environ["EVAL_JUDGE_LLM_BASE_URL"],
-        "EVAL_JUDGE_LLM_BASE_URL",
-    )
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        if (output_path / "predictions.jsonl").exists():
+            raise FileExistsError(
+                f"Run output already exists at {output_path}; choose a different run_tag."
+            )
+
+        manifest = run_experiment(
+            dataset_id,
+            input_path,
+            output_path,
+            limit=limit,
+            offset=offset,
+            language=language or None,
+            include_noncommercial=include_noncommercial,
+            corpus_index=corpus_index or None,
+            agent_model=chat_model,
+            agent_model_id=model_id,
+            evaluator_model=chat_model,
+            evaluator_model_id=model_id,
+            model_revision=chat_model.resolved_revision,
+        )
+        summary_path = output_path / "summary.json"
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        return {
+            "status": manifest["status"],
+            "dataset_id": dataset_id,
+            "model_id": model_id,
+            "model_revision": chat_model.resolved_revision,
+            "completed_count": summary["completed_count"],
+            "failed_count": summary["failed_count"],
+            "summary": summary,
+            "run_manifest_path": str(output_path / "run_manifest.json"),
+            "predictions_path": str(output_path / "predictions.jsonl"),
+        }
+    finally:
+        qwen_cache_volume.commit()
+        benchmark_volume.commit()
 
 
 @app.function(
@@ -285,6 +369,7 @@ def execute_external_benchmark(
     include_noncommercial: bool = False,
     run_tag: str = "",
     source_commit: str = "",
+    model_id: str = DEFAULT_MODEL_ID,
 ) -> dict[str, Any]:
     """Download, index and/or evaluate an external benchmark entirely inside Modal."""
     if dataset_id not in {"frames", "deepresearch-bench-ii", "browsecomp-plus"}:
@@ -293,6 +378,7 @@ def execute_external_benchmark(
         raise ValueError("stage must be prepare, build-corpus, run or all.")
     if limit < 1 or offset < 0:
         raise ValueError("limit must be positive and offset must be non-negative.")
+    model_id = validate_hf_model_id(model_id)
     if language and (dataset_id != "deepresearch-bench-ii" or language not in {"en", "zh"}):
         raise ValueError("language is only supported for DRB II and must be en or zh.")
     if include_noncommercial and dataset_id != "deepresearch-bench-ii":
@@ -382,41 +468,31 @@ def execute_external_benchmark(
 
     selected_tag = safe_run_tag(run_tag)
     output_dir = RUNS_ROOT / dataset_id / selected_tag
-    output_dir.mkdir(parents=True, exist_ok=True)
-    if (output_dir / "predictions.jsonl").exists():
-        raise FileExistsError(
-            f"Run output already exists at {output_dir}; choose a different run_tag to avoid overwriting it."
-        )
-
-    try:
-        run_manifest = run_experiment(
-            dataset_id,
-            input_path,
-            output_dir,
-            limit=limit,
-            offset=offset,
-            include_noncommercial=include_noncommercial,
-            corpus_index=corpus_index,
-            language=language or None,
-        )
-        summary_path = output_dir / "summary.json"
-        summary = json.loads(summary_path.read_text(encoding="utf-8"))
-        result = {
-            "status": run_manifest["status"],
-            "dataset_id": dataset_id,
-            "run_tag": selected_tag,
-            "completed_count": summary["completed_count"],
-            "failed_count": summary["failed_count"],
-            "summary": summary,
-            "run_manifest_path": str(output_dir / "run_manifest.json"),
-            "predictions_path": str(output_dir / "predictions.jsonl"),
-            "storage": "Modal Volume (persistent)",
-            "preparation": preparation_details,
-        }
-    finally:
-        # Persist downloaded datasets, corpus indexes and any partial run output.
-        benchmark_volume.commit()
-    return result
+    result = execute_qwen_experiment.remote(
+        dataset_id=dataset_id,
+        input_path=str(input_path),
+        output_dir=str(output_dir),
+        model_id=model_id,
+        limit=limit,
+        offset=offset,
+        language=language,
+        include_noncommercial=include_noncommercial,
+        corpus_index=str(corpus_index) if corpus_index else "",
+        source_commit=source_commit,
+    )
+    return {
+        **result,
+        "run_tag": selected_tag,
+        "storage": "Modal Volume (persistent)",
+        "preparation": preparation_details,
+        "inference": {
+            "runtime": "Modal L4 GPU",
+            "weights_source": "Hugging Face Hub",
+            "weights_cache": QWEN_CACHE_VOLUME_NAME,
+            "agent_and_evaluator_share_model": True,
+            "judge_type": "same_model_llm_judge",
+        },
+    }
 
 
 @app.local_entrypoint()
@@ -429,6 +505,7 @@ def main(
     include_noncommercial: bool = False,
     run_tag: str = "",
     source_commit: str = "",
+    model_id: str = DEFAULT_MODEL_ID,
 ) -> None:
     result = execute_external_benchmark.remote(
         dataset_id=dataset_id,
@@ -439,5 +516,6 @@ def main(
         include_noncommercial=include_noncommercial,
         run_tag=run_tag,
         source_commit=source_commit,
+        model_id=model_id,
     )
     print(json.dumps(result, indent=2, ensure_ascii=False))

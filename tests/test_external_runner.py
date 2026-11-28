@@ -45,9 +45,12 @@ def test_frames_answer_extraction_returns_separate_concise_answer():
         item,
         {"answer": "The report concludes that the building ranks 37th."},
         judge,
+        judge_type="same_model_llm_judge",
     )
     assert result["predicted_answer"] == "37th"
     assert result["extractor_model"] == "offline-test-judge"
+    assert result["extractor_type"] == "same_model_answer_extraction"
+    assert result["judge_type"] == "same_model_llm_judge"
 
 
 def test_drb2_judge_requires_complete_rubric_ids_and_exact_report_evidence():
@@ -104,9 +107,14 @@ def test_browsecomp_answer_judge_requires_boolean_verdict():
         })
 
     judge = FakeJudge(compare_with_reference)
-    result = _browsecomp_answer_judge(item, {"answer": "Ada Lovelace created it."}, judge)
+    result = _browsecomp_answer_judge(
+        item,
+        {"answer": "Ada Lovelace created it."},
+        judge,
+        judge_type="same_model_llm_judge",
+    )
     assert result["correct"] is True
-    assert result["judge_type"] == "custom_llm_judge"
+    assert result["judge_type"] == "same_model_llm_judge"
 
 
 

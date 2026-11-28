@@ -73,6 +73,21 @@ def summarize_predictions(predictions_path: str | Path) -> dict[str, Any]:
             ]),
         }
         summary["retrieval_metrics"] = _average_metric_rows(completed, ("retrieval",))
+        extractors = [row.get("extracted_answer", {}) for row in completed]
+        summary["answer_extraction"] = {
+            "model": next(
+                (row.get("extractor_model") for row in extractors if row.get("extractor_model")),
+                None,
+            ),
+            "extractor_type": next(
+                (row.get("extractor_type") for row in extractors if row.get("extractor_type")),
+                None,
+            ),
+            "judge_type": next(
+                (row.get("judge_type") for row in extractors if row.get("judge_type")),
+                None,
+            ),
+        }
     elif dataset_id == "browsecomp-plus":
         summary["evidence_retrieval_metrics"] = _average_metric_rows(
             completed, ("retrieval", "evidence")
@@ -89,7 +104,14 @@ def summarize_predictions(predictions_path: str | Path) -> dict[str, Any]:
             "judged_count": len(answer_verdicts),
             "correct_count": sum(answer_verdicts),
             "accuracy": _mean([float(value) for value in answer_verdicts]),
-            "judge_type": "custom_llm_judge",
+            "judge_type": next(
+                (
+                    row.get("metrics", {}).get("answer_judgment", {}).get("judge_type")
+                    for row in completed
+                    if row.get("metrics", {}).get("answer_judgment", {}).get("judge_type")
+                ),
+                "custom_llm_judge",
+            ),
         }
     elif dataset_id == "deepresearch-bench-ii":
         dimensions: dict[str, dict[str, int]] = {}
@@ -129,7 +151,14 @@ def summarize_predictions(predictions_path: str | Path) -> dict[str, Any]:
             )
         summary["rubric_metrics"] = totals
         summary["rubric_metrics_by_dimension"] = dimensions
-        summary["judge_type"] = "custom_llm_judge"
+        summary["judge_type"] = next(
+            (
+                row.get("judge", {}).get("type")
+                for row in completed
+                if row.get("judge", {}).get("type")
+            ),
+            "custom_llm_judge",
+        )
 
     return summary
 

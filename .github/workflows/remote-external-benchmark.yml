@@ -17,6 +17,11 @@ on:
           - deepresearch-bench-ii
           - browsecomp-plus
         default: frames
+      model_id:
+        description: Hugging Face model repository for both agent and evaluator
+        required: true
+        type: string
+        default: Qwen/Qwen3-1.7B
       stage:
         description: Prepare data, build the BrowseComp corpus, run, or do all stages
         required: true
@@ -90,6 +95,7 @@ jobs:
       LANGUAGE_FILTER: ${{ inputs.language || '' }}
       INCLUDE_NONCOMMERCIAL: ${{ inputs.include_noncommercial || false }}
       REQUESTED_RUN_TAG: ${{ inputs.run_tag || '' }}
+      MODEL_ID: ${{ inputs.model_id || 'Qwen/Qwen3-1.7B' }}
     steps:
       - name: Checkout benchmark runner code
         uses: actions/checkout@v5
@@ -122,15 +128,13 @@ jobs:
             exit 1
           fi
           if [[ "$STAGE" == "run" || "$STAGE" == "all" ]]; then
-            for name in LLM_BASE_URL LLM_MODEL EVAL_JUDGE_LLM_BASE_URL EVAL_JUDGE_LLM_MODEL; do
-              if [[ -z "${!name}" ]]; then
-                echo "::error::Missing GitHub Actions secret: $name"
-                exit 1
-              fi
-            done
             if [[ "$DATASET_ID" == "frames" || "$DATASET_ID" == "deepresearch-bench-ii" ]]; then
               test -n "$TAVILY_KEY" || (echo "::error::Missing GitHub Actions secret: TAVILY_KEY" && exit 1)
             fi
+          fi
+          if [[ ! "$MODEL_ID" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::MODEL_ID must be a Hugging Face repository ID such as Qwen/Qwen3-1.7B."
+            exit 1
           fi
 
       - name: Run benchmark remotely on Modal
@@ -153,6 +157,7 @@ jobs:
             --offset "$OFFSET"
             --run-tag "$run_tag"
             --source-commit "$GITHUB_SHA"
+            --model-id "$MODEL_ID"
           )
           if [[ -n "$LANGUAGE_FILTER" ]]; then
             args+=(--language "$LANGUAGE_FILTER")

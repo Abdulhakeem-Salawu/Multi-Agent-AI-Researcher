@@ -61,6 +61,8 @@ def build_default_dependencies(
     search_provider: SearchProvider | None = None,
     *,
     search_provider_name: str = "tavily",
+    llm: ChatModel | None = None,
+    llm_model: str | None = None,
 ) -> ResearchDependencies:
     settings = ResearchSettings.from_environment()
     if search_provider is None:
@@ -71,15 +73,23 @@ def build_default_dependencies(
             timeout=settings.request_timeout_seconds,
         )
 
+    resolved_llm = llm or OpenAICompatibleChatModel(
+        settings.llm_base_url,
+        settings.llm_model,
+        api_key=settings.llm_api_key,
+        timeout=settings.request_timeout_seconds,
+    )
+    resolved_model_name = (
+        llm_model
+        or getattr(resolved_llm, "model_id", None)
+        or getattr(resolved_llm, "model", None)
+        or settings.llm_model
+    )
+
     return ResearchDependencies(
         search_provider=search_provider,
-        llm=OpenAICompatibleChatModel(
-            settings.llm_base_url,
-            settings.llm_model,
-            api_key=settings.llm_api_key,
-            timeout=settings.request_timeout_seconds,
-        ),
-        llm_model=settings.llm_model,
+        llm=resolved_llm,
+        llm_model=resolved_model_name,
         max_queries=settings.max_queries,
         max_results_per_query=settings.max_results_per_query,
         max_evidence_sources=settings.max_evidence_sources,

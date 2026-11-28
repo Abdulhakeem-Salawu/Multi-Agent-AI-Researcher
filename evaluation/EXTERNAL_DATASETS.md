@@ -152,14 +152,9 @@ The BrowseComp-Plus run path requires the complete corpus index. It returns upst
 
 ### Run the actual agent
 
-The run command invokes the same LangGraph graph used by the application, writes each task result to predictions.jsonl, and saves a run_manifest.json containing input SHA-256, selected task IDs, Git commit, agent model, judge model, provider and corpus revision. It also writes summary.json with track-specific aggregate metrics. Failed tasks are recorded individually. --resume skips already completed task IDs, retries failed tasks, and refuses to append when the dataset inputs, task selection, agent/judge model, corpus revision or corpus index checksum differs from the original run.
+The run command invokes the same LangGraph graph used by the application, writes each task result to predictions.jsonl, and saves a run_manifest.json containing input SHA-256, selected task IDs, Git commit, model ID/revision, search provider and corpus revision. It also writes summary.json with track-specific aggregate metrics. Failed tasks are recorded individually. --resume skips already completed task IDs, retries failed tasks, and refuses to append when the dataset inputs, task selection, model, corpus revision or corpus index checksum differs from the original run.
 
-Configure the agent as usual using TAVILY_API_KEY, LLM_BASE_URL, LLM_API_KEY and LLM_MODEL. Each track uses an explicitly configured separate judge/extractor through:
-
-- EVAL_JUDGE_LLM_BASE_URL
-- EVAL_JUDGE_LLM_MODEL
-- EVAL_JUDGE_LLM_API_KEY
-- EVAL_JUDGE_TIMEOUT_SECONDS (optional, defaults to 120)
+For the Modal cloud workflow, the default model is Qwen/Qwen3-1.7B, loaded directly from Hugging Face with Transformers on an NVIDIA L4. The same loaded model handles agent generation and evaluator/extractor calls; outputs are labelled same_model_llm_judge. See the Modal cloud section below for model cache and evaluation limitations. Local or custom OpenAI-compatible runs can still use LLM_BASE_URL and EVAL_JUDGE_LLM_BASE_URL.
 
 FRAMES uses the judge model only to extract a concise answer from the generated report; exact match and token F1 are then computed deterministically against its answer label. DRB II uses an LLM judge with exact report-substring evidence checks and native 1/0/-1 rubric outcomes. BrowseComp-Plus uses a separate LLM answer judgment and deterministic evidence/gold retrieval metrics. Judge outputs are not human labels.
 
@@ -198,27 +193,42 @@ This keeps multi-gigabyte transfers away from a phone tethered to your laptop. T
 
 ### One-time GitHub Actions secrets
 
-Your existing `TAVILY_KEY` secret is supported directly. The settings loader accepts either `TAVILY_API_KEY` or `TAVILY_KEY`, with `TAVILY_API_KEY` taking precedence.
+Your existing `TAVILY_KEY` secret is supported directly. You do not need to rename it.
 
-Add these secrets under **GitHub repository → Settings → Secrets and variables → Actions → Repository secrets**:
+Required repository secrets:
 
 | Secret | Purpose |
 |---|---|
 | `MODAL_TOKEN_ID` | Modal CI authentication token ID |
 | `MODAL_TOKEN_SECRET` | Modal CI authentication token secret |
-| `TAVILY_KEY` | Your existing Tavily credential |
-| `LLM_BASE_URL` | Public HTTPS OpenAI-compatible agent endpoint |
-| `LLM_MODEL` | Agent model identifier |
-| `LLM_API_KEY` | Agent endpoint key, when required |
-| `EVAL_JUDGE_LLM_BASE_URL` | Public HTTPS evaluator/extractor endpoint |
-| `EVAL_JUDGE_LLM_MODEL` | Evaluator/extractor model identifier |
-| `EVAL_JUDGE_LLM_API_KEY` | Evaluator endpoint key, when required |
+| `TAVILY_KEY` | Your existing Tavily credential for live-web research |
 
-Optional secrets: `HF_TOKEN` (for Hugging Face access if required), and your existing Langfuse credentials (`LANGFUSE_BASE_URL`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`). Optional repository variables: `MODAL_ENVIRONMENT`, `EVAL_JUDGE_TIMEOUT_SECONDS`, `LANGFUSE_TRACE_CONTENT` and `OTEL_EXPORTER_OTLP_ENDPOINT`.
+Optional secrets:
 
-The agent and judge endpoints must be reachable from Modal over HTTPS. A local address such as `localhost:11434` on your computer will not work from a cloud container. Do not put API keys, query-string credentials or bearer tokens inside the endpoint URL; provide them through the separate key variables. The runner rejects non-HTTPS or credential-bearing endpoint URLs because it records endpoint URLs in experiment manifests.
+| Secret | Purpose |
+|---|---|
+| `HF_TOKEN` | Hugging Face access token; not needed for the public Qwen3-1.7B model |
+| `LANGFUSE_BASE_URL`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Existing Langfuse observability credentials |
 
-Modal's local setup does not automatically authenticate GitHub Actions. The workflow uses the official `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET` environment variables. Create a separate CI token with `modal token new` (or a dedicated Modal service-user token), then add the two values as GitHub repository secrets. Do not reuse or paste your personal token into source files. See the [Modal token CLI reference](https://modal.com/docs/cli/latest/token), [Modal GitHub Actions example](https://modal.com/docs/guide/useful-snippets#github-actions) and [Modal Secret documentation](https://modal.com/docs/sdk/py/latest/Secret).
+Optional repository variables include `MODAL_ENVIRONMENT`, `LANGFUSE_TRACE_CONTENT` and `OTEL_EXPORTER_OTLP_ENDPOINT`.
+
+The benchmark workflow has a configurable `model_id` input, defaulting to **`Qwen/Qwen3-1.7B`**. You can select another Hugging Face repository ID later without editing the agent code.
+
+### How Qwen3 inference is hosted
+
+Hugging Face currently does not list Qwen3-1.7B as deployed by its serverless Inference Providers. Instead, this project loads the public Hugging Face weights directly in a Modal GPU function using Transformers. The initial runtime is an **NVIDIA L4 GPU**.
+
+- Agent generation and evaluator/extractor calls share one in-memory model instance to avoid loading two copies.
+- Qwen3 thinking mode is disabled for the initial baseline; generation uses the non-thinking chat template and the Qwen3 recommended sampling settings.
+- The resolved Hugging Face commit revision is stored in the experiment manifest.
+- Weights are cached under the persistent Modal Volume `multi-agent-ai-research-qwen-cache`, separate from the dataset and benchmark-results Volume. After the first download, later jobs can reuse this cache.
+- `HF_TOKEN` is optional for this public model, but can be added later if a selected model requires gated access.
+
+**Evaluation caveat:** The same Qwen3 model is used to generate the research report and judge/extract its answer. Its scores are labelled `same_model_llm_judge` and are not independent verification. These are useful baseline diagnostics, not human evaluation and not an unbiased quality estimate. For a stronger evaluation later, we can retain Qwen3 as the agent and introduce a separate, stronger evaluator model.
+
+Modal GPU execution consumes compute while the model is loaded and running; persistent volumes also have storage costs under your Modal plan. The L4 model worker is started only for the benchmark run, not kept as an always-on inference service.
+
+Modal's local setup does not automatically authenticate GitHub Actions. The workflow uses `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET`. Create a separate CI token with `modal token new` and store both values as repository secrets. Do not paste them into source files.
 
 ### First run: small FRAMES preparation
 
@@ -229,13 +239,14 @@ Choose:
 | Input | Value |
 |---|---|
 | Dataset | `frames` |
+| Model ID | `Qwen/Qwen3-1.7B` |
 | Stage | `prepare` |
-| Limit | `3` (ignored in preparation stage) |
+| Limit | `3` (ignored during preparation) |
 | Offset | `0` |
 
-This downloads the pinned 824-row FRAMES input on Modal and writes its checksum manifest to the persistent Volume. It does not require model endpoint secrets yet.
+This reuses the already-prepared 824-row FRAMES file in the Modal Volume.
 
-Next, run the same workflow with `dataset_id=frames`, `stage=run` and `limit=3`. This executes three questions through the agent and configured evaluator. It requires the agent/judge endpoint secrets and `TAVILY_KEY`.
+Next, run the same workflow with `dataset_id=frames`, `model_id=Qwen/Qwen3-1.7B`, `stage=run` and `limit=3`. This starts the L4 GPU worker, downloads Qwen3 weights into the persistent model cache if needed, then runs three questions through the research agent and same-model evaluator. It requires `TAVILY_KEY`, but no external `LLM_BASE_URL` or judge endpoint secrets.
 
 ### BrowseComp-Plus: split preparation from corpus indexing
 
