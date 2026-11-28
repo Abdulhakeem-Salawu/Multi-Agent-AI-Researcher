@@ -1,0 +1,1136 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "multi-agent-ai-researcher",
+  "version": "0.2.0-candidate",
+  "status": "draft",
+  "description": "Twenty-four source-linked candidate research cases for expert review and annotation. This is a curation seed pack, not a scored or adjudicated benchmark.",
+  "provenance": {
+    "collection_method": "Questions and candidate propositions were authored from official framework documentation, standards, protocol specifications, and project documentation. Source URL metadata was checked on 2026-11-28; source text has not been captured or frozen.",
+    "corpus_description": "Twenty-four draft cases spanning agent orchestration, Python concurrency, SQLite, OpenTelemetry, Prometheus, HTTP caching, OAuth PKCE, W3C provenance, NIST AI risk management, and OWASP prompt-injection concepts. Candidate propositions require expert review and independent annotation.",
+    "collected_at": "2026-11-28T07:42:00Z",
+    "dataset_license": "Original questions and candidate propositions: release license not yet selected. Linked source documents are not copied into this dataset and remain subject to their respective terms and licenses.",
+    "curation_notes": "All cases are deliberately draft. Each snapshot is unfrozen; source licenses and redistribution permissions are unverified; no annotator labels, evidence spans, or adjudications are included. Do not use this file for model-quality claims, regression thresholds, or benchmark leaderboard results."
+  },
+  "cases": [
+    {
+      "case_id": "LG-SEND-001",
+      "question": "How does LangGraph Send support runtime-sized parallel work, and what kind of workflow pattern is it intended to implement?",
+      "scope": "Use the Python Graph API documentation. Explain per-item dynamic dispatch and the relationship to map-reduce/orchestrator-worker patterns; do not infer undocumented execution guarantees.",
+      "as_of": null,
+      "topic_tags": [
+        "agent_orchestration",
+        "langgraph",
+        "dynamic_fanout",
+        "map_reduce"
+      ],
+      "snapshot": {
+        "snapshot_id": "lg-send-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "langgraph_graph_api",
+            "title": "Graph API overview",
+            "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
+            "publisher": "LangChain",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "LG-SEND-001-C1",
+          "proposition": "Send dynamically invokes a graph node with an input payload.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "LG-SEND-001-C2",
+          "proposition": "Send is intended for cases where the number of work items is known only at runtime and the same node should run once per item.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "LG-SEND-001-C3",
+          "proposition": "A common Send pattern is map-reduce/orchestrator-worker: one node creates work items, workers process them, and a later node combines the results.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "LG-PARALLEL-002",
+      "question": "In LangGraph's Graph API, what is a super-step and how does it relate to parallel node execution?",
+      "scope": "Use only the official Graph API overview. Distinguish parallel nodes in the same super-step from sequential nodes in different super-steps.",
+      "as_of": null,
+      "topic_tags": [
+        "agent_orchestration",
+        "langgraph",
+        "graph_execution",
+        "parallelism"
+      ],
+      "snapshot": {
+        "snapshot_id": "lg-parallel-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "langgraph_graph_api",
+            "title": "Graph API overview",
+            "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
+            "publisher": "LangChain",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "LG-PARALLEL-002-C1",
+          "proposition": "Nodes that execute in parallel share one super-step.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "LG-PARALLEL-002-C2",
+          "proposition": "Nodes that execute sequentially run in separate super-steps.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "LG-PARALLEL-002-C3",
+          "proposition": "A LangGraph conditional routing function can return a list of node names to fan out work to multiple nodes in parallel in the next super-step."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "LG-LIMIT-003",
+      "question": "Does the cited LangGraph Graph API overview specify a numeric default maximum number of concurrent Send workers?",
+      "scope": "This is an evidence-boundary case. Answer only from the cited page; distinguish an explicit documented limit from a limit that may exist elsewhere in configuration, deployment, or runtime settings.",
+      "as_of": null,
+      "topic_tags": [
+        "agent_orchestration",
+        "langgraph",
+        "insufficient_evidence",
+        "source_scope"
+      ],
+      "snapshot": {
+        "snapshot_id": "lg-limit-003-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "langgraph_graph_api",
+            "title": "Graph API overview",
+            "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
+            "publisher": "LangChain",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "LG-LIMIT-003-C1",
+          "proposition": "The cited Graph API overview specifies a numeric default maximum for concurrently executing Send workers.",
+          "scope_notes": "Candidate proposition intentionally tests whether the source actually states a numeric limit; do not assume the proposition is true."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "ASYNCIO-GATHER-001",
+      "question": "When asyncio.gather receives several awaitables, what does it return on success and what happens when one awaitable raises with the default settings?",
+      "scope": "Use the Python standard-library documentation. Preserve the distinction between exception propagation and cancellation of the remaining awaitables.",
+      "as_of": null,
+      "topic_tags": [
+        "python",
+        "async_concurrency",
+        "exception_semantics",
+        "failure_modes"
+      ],
+      "snapshot": {
+        "snapshot_id": "asyncio-gather-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "python_asyncio_tasks",
+            "title": "Coroutines and tasks",
+            "url": "https://docs.python.org/3/library/asyncio-task.html",
+            "publisher": "Python Software Foundation",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "ASYNCIO-GATHER-001-C1",
+          "proposition": "asyncio.gather schedules coroutine arguments as tasks.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "ASYNCIO-GATHER-001-C2",
+          "proposition": "When all awaitables succeed, gather returns a list whose result order matches the order of the awaitables supplied.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "ASYNCIO-GATHER-001-C3",
+          "proposition": "With return_exceptions=False, the first raised exception is propagated to the task awaiting gather.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "ASYNCIO-GATHER-001-C4",
+          "proposition": "When one awaitable raises under the default gather behavior, the other submitted awaitables are not automatically cancelled and continue running.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "ASYNCIO-TASKGROUP-002",
+      "question": "How does asyncio.TaskGroup handle a child task failing with an exception other than CancelledError?",
+      "scope": "Use the Python standard-library documentation for TaskGroup. State the sibling-task cancellation and exception aggregation behavior separately.",
+      "as_of": null,
+      "topic_tags": [
+        "python",
+        "async_concurrency",
+        "taskgroup",
+        "exception_groups"
+      ],
+      "snapshot": {
+        "snapshot_id": "asyncio-taskgroup-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "python_asyncio_tasks",
+            "title": "Coroutines and tasks",
+            "url": "https://docs.python.org/3/library/asyncio-task.html",
+            "publisher": "Python Software Foundation",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "ASYNCIO-TASKGROUP-002-C1",
+          "proposition": "When a TaskGroup child fails with a non-cancellation exception, the remaining tasks in the group are cancelled.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "ASYNCIO-TASKGROUP-002-C2",
+          "proposition": "TaskGroup waits for the remaining tasks to finish their cancellation before leaving the context manager.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "ASYNCIO-TASKGROUP-002-C3",
+          "proposition": "Non-cancellation failures from the task group are raised together in an ExceptionGroup or BaseExceptionGroup, as appropriate.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "ASYNCIO-CANCEL-003",
+      "question": "What is the cancellation behavior when the gather operation itself is cancelled?",
+      "scope": "Use the Python standard-library documentation. Do not confuse cancellation of gather itself with an individual child task raising an exception.",
+      "as_of": null,
+      "topic_tags": [
+        "python",
+        "async_concurrency",
+        "cancellation",
+        "failure_modes"
+      ],
+      "snapshot": {
+        "snapshot_id": "asyncio-cancel-003-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "python_asyncio_tasks",
+            "title": "Coroutines and tasks",
+            "url": "https://docs.python.org/3/library/asyncio-task.html",
+            "publisher": "Python Software Foundation",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "ASYNCIO-CANCEL-003-C1",
+          "proposition": "If gather itself is cancelled, cancellation is propagated to submitted awaitables that have not completed.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "ASYNCIO-CANCEL-003-C2",
+          "proposition": "A single child Task or Future being cancelled is treated as if that child raised CancelledError; it does not by itself cancel the entire gather call.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "SQLITE-WAL-001",
+      "question": "What concurrency improvements and deployment limitations does SQLite's Write-Ahead Logging mode introduce?",
+      "scope": "Use the SQLite WAL documentation. Cover reader/writer overlap, writer serialization, and the same-host restriction.",
+      "as_of": null,
+      "topic_tags": [
+        "database",
+        "sqlite",
+        "wal",
+        "concurrency",
+        "deployment_constraints"
+      ],
+      "snapshot": {
+        "snapshot_id": "sqlite-wal-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "sqlite_wal",
+            "title": "Write-Ahead Logging",
+            "url": "https://www.sqlite.org/wal.html",
+            "publisher": "SQLite",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "SQLITE-WAL-001-C1",
+          "proposition": "In WAL mode, readers do not block writers and writers do not block readers, so reads and writes can proceed concurrently.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "SQLITE-WAL-001-C2",
+          "proposition": "SQLite WAL mode still permits only one writer at a time.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "SQLITE-WAL-001-C3",
+          "proposition": "WAL mode requires processes using the database to be on the same host and does not work over a network filesystem.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "SQLITE-ISOLATION-002",
+      "question": "How does SQLite provide serializable isolation for concurrent writes?",
+      "scope": "Use the SQLite isolation documentation. Explain write serialization and the effect on multiple database connections.",
+      "as_of": null,
+      "topic_tags": [
+        "database",
+        "sqlite",
+        "transactions",
+        "isolation"
+      ],
+      "snapshot": {
+        "snapshot_id": "sqlite-isolation-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "sqlite_isolation",
+            "title": "Isolation in SQLite",
+            "url": "https://www.sqlite.org/isolation.html",
+            "publisher": "SQLite",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "SQLITE-ISOLATION-002-C1",
+          "proposition": "SQLite implements serializable transactions by serializing writes.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "SQLITE-ISOLATION-002-C2",
+          "proposition": "Multiple database connections can write to the same database file, but they must take turns because only one writer can write at a time.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "SQLITE-ISOLATION-002-C3",
+          "proposition": "SQLite uses locks to serialize writes automatically.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OTEL-CONTEXT-001",
+      "question": "How does OpenTelemetry context propagation connect traces across distributed services?",
+      "scope": "Use the OpenTelemetry context-propagation documentation. Describe the context carried between services and how a downstream span is linked to an upstream span.",
+      "as_of": null,
+      "topic_tags": [
+        "observability",
+        "opentelemetry",
+        "distributed_tracing",
+        "context_propagation"
+      ],
+      "snapshot": {
+        "snapshot_id": "otel-context-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "otel_context_propagation",
+            "title": "Context propagation",
+            "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
+            "publisher": "OpenTelemetry",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OTEL-CONTEXT-001-C1",
+          "proposition": "Context propagation carries context between services or processes so telemetry signals can be correlated across distributed boundaries.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OTEL-CONTEXT-001-C2",
+          "proposition": "A propagated trace ID and span ID allow a downstream service to create a span within the same trace and identify the upstream span as its parent.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OTEL-CONTEXT-001-C3",
+          "proposition": "OpenTelemetry's default propagator uses headers specified by the W3C Trace Context specification.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OTEL-TRACEPARENT-002",
+      "question": "What fields are encoded in the W3C traceparent header described by OpenTelemetry?",
+      "scope": "Use the example and explanation in the OpenTelemetry context-propagation documentation. Keep the four fields in their documented order.",
+      "as_of": null,
+      "topic_tags": [
+        "observability",
+        "opentelemetry",
+        "w3c_trace_context",
+        "distributed_tracing"
+      ],
+      "snapshot": {
+        "snapshot_id": "otel-traceparent-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "otel_context_propagation",
+            "title": "Context propagation",
+            "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
+            "publisher": "OpenTelemetry",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OTEL-TRACEPARENT-002-C1",
+          "proposition": "The traceparent header has the format version-trace-id-parent-id-trace-flags.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OTEL-TRACEPARENT-002-C2",
+          "proposition": "The traceparent header carries both a trace identifier and a parent-span identifier.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "PROM-METRICS-001",
+      "question": "When instrumenting an AI research service, how should Prometheus counters and gauges be distinguished?",
+      "scope": "Use the Prometheus metric-types documentation. Apply the definitions to request totals, error totals, concurrent requests, and current memory usage.",
+      "as_of": null,
+      "topic_tags": [
+        "observability",
+        "prometheus",
+        "metrics",
+        "instrumentation"
+      ],
+      "snapshot": {
+        "snapshot_id": "prom-metrics-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "prom_metric_types",
+            "title": "Metric types",
+            "url": "https://prometheus.io/docs/concepts/metric_types/",
+            "publisher": "Prometheus",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "PROM-METRICS-001-C1",
+          "proposition": "A Prometheus counter is cumulative and can increase or reset to zero on restart, but it should not decrease during normal operation.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROM-METRICS-001-C2",
+          "proposition": "A Prometheus gauge can increase or decrease and is appropriate for values such as current memory usage or concurrent requests.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROM-METRICS-001-C3",
+          "proposition": "A monotonically increasing count of completed research runs is better represented by a counter than by a gauge.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "PROM-HIST-SUM-002",
+      "question": "What is the difference between Prometheus histograms and summaries when measuring latency distributions?",
+      "scope": "Use the Prometheus metric-types documentation. Distinguish bucketed observations from client-calculated quantiles and avoid claims about cross-instance aggregation unless supported by the source.",
+      "as_of": null,
+      "topic_tags": [
+        "observability",
+        "prometheus",
+        "histograms",
+        "summaries",
+        "latency"
+      ],
+      "snapshot": {
+        "snapshot_id": "prom-hist-sum-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "prom_metric_types",
+            "title": "Metric types",
+            "url": "https://prometheus.io/docs/concepts/metric_types/",
+            "publisher": "Prometheus",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "PROM-HIST-SUM-002-C1",
+          "proposition": "A classic Prometheus histogram exposes cumulative bucket counters together with a sum and count of observations.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROM-HIST-SUM-002-C2",
+          "proposition": "A Prometheus summary calculates configured quantiles over a sliding time window.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROM-HIST-SUM-002-C3",
+          "proposition": "Histogram and summary quantile behavior should not be treated as interchangeable.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "HTTP-CACHE-FRESH-001",
+      "question": "How does RFC 9111 define a fresh HTTP response and determine its freshness lifetime?",
+      "scope": "Use RFC 9111 sections 4.2 and 4.2.1. Include the freshness comparison and precedence among shared-cache s-maxage, max-age, and Expires.",
+      "as_of": null,
+      "topic_tags": [
+        "web_protocols",
+        "http",
+        "caching",
+        "freshness",
+        "temporal_semantics"
+      ],
+      "snapshot": {
+        "snapshot_id": "http-cache-fresh-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "rfc9111_http_caching",
+            "title": "RFC 9111: HTTP Caching",
+            "url": "https://www.rfc-editor.org/rfc/rfc9111.html",
+            "publisher": "RFC Editor",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "HTTP-CACHE-FRESH-001-C1",
+          "proposition": "A response is fresh when its current age has not exceeded its freshness lifetime.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "HTTP-CACHE-FRESH-001-C2",
+          "proposition": "For a shared cache, s-maxage takes precedence when present; otherwise max-age is used when present, followed by Expires-based calculation.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "HTTP-CACHE-FRESH-001-C3",
+          "proposition": "The RFC's freshness comparison is expressed as freshness_lifetime greater than current_age.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "HTTP-CACHE-VALIDATION-002",
+      "question": "What does the HTTP must-revalidate response directive require after a cached response becomes stale?",
+      "scope": "Use RFC 9111 section 5.2.2.2 and the validation section. Explain whether a disconnected cache may reuse the stale response.",
+      "as_of": null,
+      "topic_tags": [
+        "web_protocols",
+        "http",
+        "caching",
+        "validation"
+      ],
+      "snapshot": {
+        "snapshot_id": "http-cache-validation-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "rfc9111_http_caching",
+            "title": "RFC 9111: HTTP Caching",
+            "url": "https://www.rfc-editor.org/rfc/rfc9111.html",
+            "publisher": "RFC Editor",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "HTTP-CACHE-VALIDATION-002-C1",
+          "proposition": "A cache must not reuse a stale response marked must-revalidate until it has successfully validated the response with the origin.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "HTTP-CACHE-VALIDATION-002-C2",
+          "proposition": "If disconnected, a cache must generate an error rather than reuse a stale response whose must-revalidate directive applies.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "HTTP-CACHE-HEURISTIC-003",
+      "question": "When may an HTTP cache use heuristic freshness, and when is heuristic freshness prohibited?",
+      "scope": "Use RFC 9111 section 4.2.2. Distinguish responses without explicit freshness from those with explicit freshness information.",
+      "as_of": null,
+      "topic_tags": [
+        "web_protocols",
+        "http",
+        "caching",
+        "heuristics",
+        "evidence_precision"
+      ],
+      "snapshot": {
+        "snapshot_id": "http-cache-heuristic-003-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "rfc9111_http_caching",
+            "title": "RFC 9111: HTTP Caching",
+            "url": "https://www.rfc-editor.org/rfc/rfc9111.html",
+            "publisher": "RFC Editor",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "HTTP-CACHE-HEURISTIC-003-C1",
+          "proposition": "A cache may assign heuristic freshness when an explicit expiration time is absent and the response meets the RFC's cacheability conditions.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "HTTP-CACHE-HEURISTIC-003-C2",
+          "proposition": "A cache must not use heuristic freshness to determine freshness when an explicit freshness expiration is present.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OAUTH-PKCE-001",
+      "question": "How is an S256 PKCE code challenge calculated, and what does RFC 7636 say clients must support?",
+      "scope": "Use RFC 7636 sections 4.2 and 7.2. Preserve the ASCII, SHA-256, and base64url transformation order.",
+      "as_of": null,
+      "topic_tags": [
+        "security",
+        "oauth2",
+        "pkce",
+        "cryptography"
+      ],
+      "snapshot": {
+        "snapshot_id": "oauth-pkce-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "rfc7636_pkce",
+            "title": "RFC 7636: Proof Key for Code Exchange by OAuth Public Clients",
+            "url": "https://www.rfc-editor.org/rfc/rfc7636.html",
+            "publisher": "RFC Editor",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OAUTH-PKCE-001-C1",
+          "proposition": "For S256, the code challenge is BASE64URL-ENCODE(SHA256(ASCII(code_verifier))).",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OAUTH-PKCE-001-C2",
+          "proposition": "An implementation capable of using S256 must use S256.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OAUTH-PKCE-001-C3",
+          "proposition": "The plain transformation is permitted only when the client cannot support S256 for a technical reason and knows through out-of-band configuration that the server supports plain.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OAUTH-PKCE-FLOW-002",
+      "question": "What is the purpose and lifecycle of the PKCE code_verifier in the OAuth authorization flow?",
+      "scope": "Use RFC 7636 sections 1.1 and 4.1–4.2. Distinguish what is sent in the authorization request from what is sent to the token endpoint.",
+      "as_of": null,
+      "topic_tags": [
+        "security",
+        "oauth2",
+        "pkce",
+        "authorization_flow"
+      ],
+      "snapshot": {
+        "snapshot_id": "oauth-pkce-flow-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "rfc7636_pkce",
+            "title": "RFC 7636: Proof Key for Code Exchange by OAuth Public Clients",
+            "url": "https://www.rfc-editor.org/rfc/rfc7636.html",
+            "publisher": "RFC Editor",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OAUTH-PKCE-FLOW-002-C1",
+          "proposition": "A unique code_verifier is created for every authorization request.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OAUTH-PKCE-FLOW-002-C2",
+          "proposition": "The transformed code_challenge is sent to the authorization server with the authorization request.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OAUTH-PKCE-FLOW-002-C3",
+          "proposition": "The client later sends the original code_verifier to the token endpoint so the authorization server can compare it with the previously received challenge.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "PROV-O-CLASSES-001",
+      "question": "What are the three foundational classes in the W3C PROV-O ontology, and what does each represent?",
+      "scope": "Use the PROV-O recommendation's starting-point terms. Distinguish an entity, an activity, and an agent rather than collapsing them into a generic provenance record.",
+      "as_of": null,
+      "topic_tags": [
+        "data_provenance",
+        "w3c",
+        "prov_o",
+        "knowledge_graphs"
+      ],
+      "snapshot": {
+        "snapshot_id": "prov-o-classes-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "w3c_prov_o",
+            "title": "PROV-O: The PROV Ontology",
+            "url": "https://www.w3.org/TR/prov-o/",
+            "publisher": "World Wide Web Consortium",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "PROV-O-CLASSES-001-C1",
+          "proposition": "The three foundational PROV-O classes are prov:Entity, prov:Activity, and prov:Agent.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROV-O-CLASSES-001-C2",
+          "proposition": "An Entity represents a thing with some fixed aspects, an Activity is something that occurs over time and acts upon or with entities, and an Agent bears responsibility for an activity or entity.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "PROV-O-RELATIONS-002",
+      "question": "How does PROV-O represent the relationship between an activity, the entities it uses or generates, and the agent responsible?",
+      "scope": "Use the PROV-O recommendation. Explain the semantics of prov:used, prov:wasGeneratedBy, and prov:wasAssociatedWith.",
+      "as_of": null,
+      "topic_tags": [
+        "data_provenance",
+        "w3c",
+        "prov_o",
+        "lineage"
+      ],
+      "snapshot": {
+        "snapshot_id": "prov-o-relations-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "w3c_prov_o",
+            "title": "PROV-O: The PROV Ontology",
+            "url": "https://www.w3.org/TR/prov-o/",
+            "publisher": "World Wide Web Consortium",
+            "source_type": "primary",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "PROV-O-RELATIONS-002-C1",
+          "proposition": "prov:used relates an activity to an entity that the activity used.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROV-O-RELATIONS-002-C2",
+          "proposition": "prov:wasGeneratedBy relates an entity to the activity that generated it.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "PROV-O-RELATIONS-002-C3",
+          "proposition": "prov:wasAssociatedWith relates an activity to an agent associated with that activity.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "NIST-AIRMF-CORE-001",
+      "question": "What are the four core functions of the NIST AI Risk Management Framework 1.0?",
+      "scope": "Use the NIST AI RMF Core page, identified as an excerpt from version 1.0 (2023). Explain the four function names and the cross-cutting role of Govern.",
+      "as_of": "2023-01-26T00:00:00Z",
+      "topic_tags": [
+        "ai_governance",
+        "nist",
+        "risk_management",
+        "frameworks"
+      ],
+      "snapshot": {
+        "snapshot_id": "nist-airmf-core-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "nist_ai_rmf_core_1_0",
+            "title": "AI RMF Core — NIST AI Risk Management Framework 1.0 (2023)",
+            "url": "https://airc.nist.gov/airmf-resources/airmf/5-sec-core/",
+            "publisher": "National Institute of Standards and Technology",
+            "source_type": "official_record",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "NIST-AIRMF-CORE-001-C1",
+          "proposition": "The AI RMF Core in version 1.0 is composed of four functions: Govern, Map, Measure, and Manage.",
+          "scope_notes": "Version-bounded to the 2023 AI RMF 1.0; the framework is under revision, so do not generalize this wording to an unreleased future version."
+        },
+        {
+          "claim_id": "NIST-AIRMF-CORE-001-C2",
+          "proposition": "Govern is designed as a cross-cutting function that informs and is infused throughout the other three AI RMF functions.",
+          "scope_notes": "Candidate proposition grounded in the Core page's text and Figure 5 caption; verify using the frozen source."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "NIST-AIRMF-PLAYBOOK-002",
+      "question": "Does NIST describe the AI RMF Playbook as a mandatory checklist that every organization must follow in full?",
+      "scope": "Use the NIST AI RMF Playbook's introductory statement. Treat this as a source-bounded interpretation question and preserve the distinction between voluntary suggested actions and formal regulatory requirements.",
+      "as_of": "2026-11-28T00:00:00Z",
+      "topic_tags": [
+        "ai_governance",
+        "nist",
+        "source_scope",
+        "policy_interpretation"
+      ],
+      "snapshot": {
+        "snapshot_id": "nist-airmf-playbook-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "nist_ai_rmf_playbook",
+            "title": "NIST AI RMF Playbook",
+            "url": "https://airc.nist.gov/airmf-resources/playbook/",
+            "publisher": "National Institute of Standards and Technology",
+            "source_type": "official_record",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "NIST-AIRMF-PLAYBOOK-002-C1",
+          "proposition": "NIST describes the Playbook as a mandatory checklist that organizations must follow in its entirety.",
+          "scope_notes": "Intentionally challenge proposition. Verify whether the source supports or contradicts it."
+        },
+        {
+          "claim_id": "NIST-AIRMF-PLAYBOOK-002-C2",
+          "proposition": "The NIST AI RMF Playbook's suggested actions are voluntary, and organizations may use as many or as few as apply to their use case or interests.",
+          "scope_notes": "Candidate proposition based on the page's introductory statement; verify against a frozen copy."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OWASP-PI-001",
+      "question": "How does the OWASP GenAI Security Project define prompt injection, and what is the core mechanism described?",
+      "scope": "Use the OWASP glossary page. Keep the definition tied to malicious instructions embedded in input and the intended behavior of the model.",
+      "as_of": null,
+      "topic_tags": [
+        "llm_security",
+        "owasp",
+        "prompt_injection",
+        "security"
+      ],
+      "snapshot": {
+        "snapshot_id": "owasp-pi-001-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "owasp_prompt_injection",
+            "title": "LLM01:2025 Prompt Injection",
+            "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+            "publisher": "OWASP GenAI Security Project",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OWASP-PI-001-C1",
+          "proposition": "OWASP describes prompt injection as a vulnerability where input can manipulate model responses and alter model behavior in unintended or unexpected ways."
+        },
+        {
+          "claim_id": "OWASP-PI-001-C2",
+          "proposition": "OWASP states that retrieval-augmented generation and fine-tuning do not fully mitigate prompt-injection vulnerabilities."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OWASP-PI-002",
+      "question": "What distinction does OWASP draw between direct and indirect prompt injection?",
+      "scope": "Use the OWASP glossary's direct-versus-indirect explanation. Do not infer a mitigation guarantee from the definitions alone.",
+      "as_of": null,
+      "topic_tags": [
+        "llm_security",
+        "owasp",
+        "prompt_injection",
+        "direct_indirect"
+      ],
+      "snapshot": {
+        "snapshot_id": "owasp-pi-002-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "owasp_prompt_injection",
+            "title": "LLM01:2025 Prompt Injection",
+            "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+            "publisher": "OWASP GenAI Security Project",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OWASP-PI-002-C1",
+          "proposition": "Direct prompt injection occurs when a user's prompt input directly alters model behavior in an unintended or unexpected way."
+        },
+        {
+          "claim_id": "OWASP-PI-002-C2",
+          "proposition": "Indirect prompt injection occurs when an LLM accepts external input, such as a website or file, whose content alters the model's behavior when interpreted."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    },
+    {
+      "case_id": "OTEL-METRIC-CORRELATION-003",
+      "question": "How can propagated context help correlate metrics with the path a request took through distributed services?",
+      "scope": "Use the OpenTelemetry context-propagation documentation. Distinguish aggregate service metrics from measurements grouped by upstream request path.",
+      "as_of": null,
+      "topic_tags": [
+        "observability",
+        "opentelemetry",
+        "metrics",
+        "distributed_tracing"
+      ],
+      "snapshot": {
+        "snapshot_id": "otel-metric-correlation-003-snapshot-v0",
+        "frozen": false,
+        "frozen_at": null,
+        "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
+        "sources": [
+          {
+            "source_id": "otel_context_propagation",
+            "title": "Context propagation",
+            "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
+            "publisher": "OpenTelemetry",
+            "source_type": "documentation",
+            "retrieved_at": "2026-11-28T07:42:00Z",
+            "license_id": "",
+            "redistribution": "unknown"
+          }
+        ]
+      },
+      "expected_claims": [
+        {
+          "claim_id": "OTEL-METRIC-CORRELATION-003-C1",
+          "proposition": "OpenTelemetry context propagation can be used to correlate metrics with trace context across service boundaries.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        },
+        {
+          "claim_id": "OTEL-METRIC-CORRELATION-003-C2",
+          "proposition": "The OpenTelemetry documentation illustrates grouping downstream request measurements by the upstream operation that led to them.",
+          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+        }
+      ],
+      "annotations": [],
+      "adjudication": null
+    }
+  ]
+}

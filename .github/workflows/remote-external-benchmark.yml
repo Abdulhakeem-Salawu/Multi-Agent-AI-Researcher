@@ -1,0 +1,188 @@
+name: remote-external-benchmark
+
+on:
+  push:
+    branches:
+      - feature/langgraph-foundation
+    paths:
+      - .github/workflows/remote-external-benchmark.yml
+      - evaluation/external/modal_app.py
+  workflow_dispatch:
+    inputs:
+      dataset_id:
+        description: External benchmark track
+        required: true
+        type: choice
+        options:
+          - frames
+          - deepresearch-bench-ii
+          - browsecomp-plus
+        default: frames
+      model_id:
+        description: Hugging Face model repository for both agent and evaluator
+        required: true
+        type: string
+        default: Qwen/Qwen3-1.7B
+      model_revision:
+        description: Hugging Face branch, tag or commit SHA; resolved SHA is recorded in the run manifest
+        required: true
+        type: string
+        default: main
+      stage:
+        description: Prepare data, build the BrowseComp corpus, run, or do all stages
+        required: true
+        type: choice
+        options:
+          - prepare
+          - build-corpus
+          - run
+          - all
+        default: prepare
+      limit:
+        description: Number of benchmark questions to evaluate (ignored for preparation)
+        required: true
+        type: number
+        default: 3
+      offset:
+        description: Starting record offset
+        required: true
+        type: number
+        default: 0
+      language:
+        description: DRB II language filter (leave empty for both languages)
+        required: false
+        type: string
+        default: ""
+      include_noncommercial:
+        description: Include DRB II CC BY-NC items only when your use is non-commercial
+        required: false
+        type: boolean
+        default: false
+      run_tag:
+        description: Optional unique run tag; defaults to the GitHub run ID
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modal-external-benchmarks
+  cancel-in-progress: false
+
+jobs:
+  run-benchmark:
+    name: Execute external benchmark on Modal
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_ENVIRONMENT: ${{ vars.MODAL_ENVIRONMENT }}
+      TAVILY_KEY: ${{ secrets.TAVILY_KEY }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      LLM_MODEL: ${{ secrets.LLM_MODEL }}
+      EVAL_JUDGE_LLM_BASE_URL: ${{ secrets.EVAL_JUDGE_LLM_BASE_URL }}
+      EVAL_JUDGE_LLM_API_KEY: ${{ secrets.EVAL_JUDGE_LLM_API_KEY }}
+      EVAL_JUDGE_LLM_MODEL: ${{ secrets.EVAL_JUDGE_LLM_MODEL }}
+      EVAL_JUDGE_TIMEOUT_SECONDS: ${{ vars.EVAL_JUDGE_TIMEOUT_SECONDS }}
+      LANGFUSE_BASE_URL: ${{ secrets.LANGFUSE_BASE_URL }}
+      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+      LANGFUSE_TRACE_CONTENT: ${{ vars.LANGFUSE_TRACE_CONTENT || 'true' }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      DATASET_ID: ${{ inputs.dataset_id || 'frames' }}
+      STAGE: ${{ inputs.stage || 'prepare' }}
+      LIMIT: ${{ inputs.limit || 3 }}
+      OFFSET: ${{ inputs.offset || 0 }}
+      LANGUAGE_FILTER: ${{ inputs.language || '' }}
+      INCLUDE_NONCOMMERCIAL: ${{ inputs.include_noncommercial || false }}
+      REQUESTED_RUN_TAG: ${{ inputs.run_tag || '' }}
+      MODEL_ID: ${{ inputs.model_id || 'Qwen/Qwen3-1.7B' }}
+      MODEL_REVISION: ${{ inputs.model_revision || 'main' }}
+    steps:
+      - name: Checkout benchmark runner code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Modal client and benchmark package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[benchmark,cloud]"
+
+      - name: Check Modal authentication
+        shell: bash
+        run: |
+          test -n "$MODAL_TOKEN_ID" || (echo "::error::Add MODAL_TOKEN_ID to GitHub Actions repository secrets." && exit 1)
+          test -n "$MODAL_TOKEN_SECRET" || (echo "::error::Add MODAL_TOKEN_SECRET to GitHub Actions repository secrets." && exit 1)
+          echo "Modal credentials are present; values are intentionally not displayed."
+
+      - name: Validate benchmark stage and run configuration
+        shell: bash
+        run: |
+          if [[ "$STAGE" == "build-corpus" && "$DATASET_ID" != "browsecomp-plus" ]]; then
+            echo "::error::build-corpus is only valid for BrowseComp-Plus."
+            exit 1
+          fi
+          if [[ "$STAGE" == "run" || "$STAGE" == "all" ]]; then
+            if [[ "$DATASET_ID" == "frames" || "$DATASET_ID" == "deepresearch-bench-ii" ]]; then
+              test -n "$TAVILY_KEY" || (echo "::error::Missing GitHub Actions secret: TAVILY_KEY" && exit 1)
+            fi
+          fi
+          if [[ ! "$MODEL_ID" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            echo "::error::MODEL_ID must be a Hugging Face repository ID such as Qwen/Qwen3-1.7B."
+            exit 1
+          fi
+
+      - name: Run benchmark remotely on Modal
+        shell: bash
+        run: |
+          # Copying a token from a terminal can accidentally include a trailing newline.
+          # Strip CR/LF without ever printing the token values.
+          MODAL_TOKEN_ID="$(printf '%s' "$MODAL_TOKEN_ID" | tr -d '\r\n')"
+          MODAL_TOKEN_SECRET="$(printf '%s' "$MODAL_TOKEN_SECRET" | tr -d '\r\n')"
+          export MODAL_TOKEN_ID MODAL_TOKEN_SECRET
+          run_tag="$REQUESTED_RUN_TAG"
+          if [[ -z "$run_tag" ]]; then
+            run_tag="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          fi
+
+          args=(
+            --dataset-id "$DATASET_ID"
+            --stage "$STAGE"
+            --limit "$LIMIT"
+            --offset "$OFFSET"
+            --run-tag "$run_tag"
+            --source-commit "$GITHUB_SHA"
+            --model-id "$MODEL_ID"
+            --model-revision "$MODEL_REVISION"
+          )
+          if [[ -n "$LANGUAGE_FILTER" ]]; then
+            args+=(--language "$LANGUAGE_FILTER")
+          fi
+          if [[ "$INCLUDE_NONCOMMERCIAL" == "true" ]]; then
+            args+=(--include-noncommercial)
+          fi
+
+          modal_env_args=()
+          if [[ -n "${MODAL_ENVIRONMENT:-}" ]]; then
+            modal_env_args+=(--env "$MODAL_ENVIRONMENT")
+          fi
+          modal run "${modal_env_args[@]}" -m evaluation.external.modal_app "${args[@]}"
+
+      - name: Explain where data and results are stored
+        if: success()
+        run: |
+          echo "Dataset downloads, the BrowseComp-Plus FTS index, and experiment outputs were stored in the persistent Modal Volume."
+          echo "No benchmark dataset or corpus was downloaded to the GitHub runner and no large file was uploaded to Git."
+          echo "The Modal run printed the summary JSON. Detailed predictions remain in the Modal Volume."

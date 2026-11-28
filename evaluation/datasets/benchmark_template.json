@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "multi-agent-ai-researcher",
+  "version": "0.1.0-draft",
+  "status": "draft",
+  "description": "Empty schema template for a frozen, human-adjudicated deep-research benchmark. It contains no benchmark cases or gold labels.",
+  "provenance": {
+    "collection_method": "Describe how questions and documents were selected, screened and frozen.",
+    "corpus_description": "Describe domains, language, date coverage and exclusions.",
+    "collected_at": "2026-11-28T00:00:00Z",
+    "dataset_license": "Specify the license for benchmark annotations and source-specific restrictions.",
+    "curation_notes": "Do not mark this dataset ready until source snapshots, two independent annotations and adjudication are complete."
+  },
+  "cases": []
+}

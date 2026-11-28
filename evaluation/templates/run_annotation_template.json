@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "benchmark_id": "multi-agent-ai-researcher",
+  "benchmark_version": "0.1.0-draft",
+  "case_id": "REPLACE_WITH_CASE_ID",
+  "report_run_id": "REPLACE_WITH_REPORT_RUN_ID",
+  "git_commit": "REPLACE_WITH_GIT_COMMIT",
+  "model_name": "REPLACE_WITH_MODEL_NAME",
+  "model_version": "",
+  "prompt_versions": {},
+  "created_at": "2026-11-28T00:00:00Z",
+  "annotations": [
+    {
+      "annotator_id": "annotator_01",
+      "annotated_at": "2026-11-28T00:00:00Z",
+      "claim_alignments": [],
+      "rubric_scores": [],
+      "notes": "Annotate independently; do not see the other annotator's judgments."
+    },
+    {
+      "annotator_id": "annotator_02",
+      "annotated_at": "2026-11-28T00:00:00Z",
+      "claim_alignments": [],
+      "rubric_scores": [],
+      "notes": "Annotate independently; do not see the other annotator's judgments."
+    }
+  ],
+  "adjudication": {
+    "adjudicator_id": "adjudicator_01",
+    "adjudicated_at": "2026-11-28T00:00:00Z",
+    "claim_alignments": [],
+    "rubric_scores": [],
+    "rationale_for_disagreements": "Explain how disagreements were reconciled using the report and frozen evidence."
+  }
+}
