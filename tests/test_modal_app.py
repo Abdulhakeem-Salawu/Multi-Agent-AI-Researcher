@@ -8,7 +8,7 @@ from evaluation.external.modal_app import (
     _normalize_secret_values,
     safe_run_tag,
     validate_remote_model_endpoint,
-)  # noqa: E402
+)
 
 
 def test_modal_run_tag_is_safe_for_volume_paths():
