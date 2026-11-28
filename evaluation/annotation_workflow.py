@@ -22,7 +22,7 @@ def _read_json(path: str | Path) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError(f"Could not read JSON file {path}: {exc}") from exc
     if not isinstance(value, dict):
-        raise ValueError(f"Expected a JSON object in {path}.")
+        raise TypeError(f"Expected a JSON object in {path}.")
     return value
 
 
@@ -92,7 +92,7 @@ def _assert_form_case_fingerprint(form: dict[str, Any], case: Any) -> None:
 
     form_claims = form.get("claim_judgments")
     if not isinstance(form_claims, list):
-        raise ValueError("Form is missing its claim list.")
+        raise TypeError("Form is missing its claim list.")
     actual_claims = [
         {
             "claim_id": item.get("claim_id"),
@@ -147,7 +147,7 @@ def _assert_form_case_fingerprint(form: dict[str, Any], case: Any) -> None:
 
 def _form_claim_judgments(items: Any) -> list[dict[str, Any]]:
     if not isinstance(items, list):
-        raise ValueError("Form claim_judgments must be a list.")
+        raise TypeError("Form claim_judgments must be a list.")
     allowed = ("claim_id", "status", "evidence_spans", "rationale")
     return [
         {key: item[key] for key in allowed if key in item}
@@ -576,9 +576,8 @@ def register_source_snapshot(
         if not controlled_ref or not controlled_ref.strip():
             raise ValueError("restricted sources require --controlled-ref.")
         resolved_controlled_ref = controlled_ref.strip()
-    elif redistribution == "metadata_only":
-        if input_file is not None or controlled_ref:
-            raise ValueError("metadata_only sources must not include local text or controlled snapshot references.")
+    elif redistribution == "metadata_only" and (input_file is not None or controlled_ref):
+        raise ValueError("metadata_only sources must not include local text or controlled snapshot references.")
 
     previous_content_path = source.content_path
     source.license_id = license_id.strip()

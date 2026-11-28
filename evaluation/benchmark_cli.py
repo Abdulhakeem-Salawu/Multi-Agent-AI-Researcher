@@ -191,7 +191,7 @@ def main() -> None:
                 overwrite=args.overwrite,
             )
             exit_code = 0
-    except (ValueError, FileExistsError, OSError) as exc:
+    except (ValueError, TypeError, FileExistsError, OSError) as exc:
         parser.error(str(exc))
 
     rendered = json.dumps(result, indent=2, ensure_ascii=False)
