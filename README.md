@@ -107,6 +107,19 @@ For Langfuse, configure LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY and LANGFUSE_BA
 
 The Langfuse Python SDK v5 requires Python 3.11+. The rest of the project retains its Python 3.10 floor; Python 3.10 can use the OpenTelemetry and Prometheus integrations without the Langfuse SDK. Configure OTLP export with OTEL_EXPORTER_OTLP_ENDPOINT.
 
+### GitHub Actions credentials
+
+For GitHub-hosted CI, add these under **Settings → Secrets and variables → Actions → Repository secrets**:
+
+- LANGFUSE_PUBLIC_KEY
+- LANGFUSE_SECRET_KEY
+- LANGFUSE_BASE_URL
+- LANGFUSE_TRACE_CONTENT
+
+The URL and content-capture setting may alternatively be repository variables; the workflow accepts either. The dedicated **Langfuse connectivity** workflow maps these values into a one-off smoke test. It checks authentication, sends only synthetic metadata/output, and flushes the observation. It does not send a research question or model prompt.
+
+Run it from **Actions → Langfuse connectivity → Run workflow**, selecting the feature branch. The same workflow also runs automatically when its own file or the smoke-test script changes on the feature branch. Do not expose these credentials to workflows triggered by untrusted fork pull requests.
+
 **Privacy:** trace content is excluded by default. Prompt text, research questions, provider queries, retrieved passages and model inputs/outputs are not sent to telemetry unless LANGFUSE_TRACE_CONTENT=true is explicitly enabled. Review your deployment's data-handling requirements before enabling content capture.
 
 ## Offline evaluation
