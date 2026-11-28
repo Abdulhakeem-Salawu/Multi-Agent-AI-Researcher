@@ -95,7 +95,7 @@ jobs:
       LANGFUSE_TRACE_CONTENT: ${{ vars.LANGFUSE_TRACE_CONTENT }}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
       DATASET_ID: ${{ inputs.dataset_id || 'frames' }}
-      STAGE: ${{ inputs.stage || 'prepare' }}
+      STAGE: ${{ inputs.stage || 'run' }}
       LIMIT: ${{ inputs.limit || 3 }}
       OFFSET: ${{ inputs.offset || 0 }}
       LANGUAGE_FILTER: ${{ inputs.language || '' }}
