@@ -224,9 +224,8 @@ def test_adjudication_requires_two_independent_annotators_and_imports(tmp_path):
             "rationale": "The source directly answers the question.",
         }
     ]
-    form["claim_judgments"] = [
+    form["claim_judgments"][0].update(
         {
-            "claim_id": "TEST-C1",
             "status": "supported",
             "evidence_spans": [
                 {
@@ -238,7 +237,7 @@ def test_adjudication_requires_two_independent_annotators_and_imports(tmp_path):
             ],
             "rationale": "Both independent annotations agree with the frozen source passage.",
         }
-    ]
+    )
     form["rationale_for_disagreements"] = "No disagreement remained after checking the frozen source."
     form_path.write_text(json.dumps(form, indent=2), encoding="utf-8")
 
