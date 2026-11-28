@@ -6,6 +6,7 @@ on:
       - feature/langgraph-foundation
     paths:
       - .github/workflows/remote-external-benchmark.yml
+      - evaluation/external/modal_app.py
   workflow_dispatch:
     inputs:
       dataset_id:
