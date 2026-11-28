@@ -1,6 +1,11 @@
 name: remote-external-benchmark
 
 on:
+  push:
+    branches:
+      - feature/langgraph-foundation
+    paths:
+      - .github/workflows/remote-external-benchmark.yml
   workflow_dispatch:
     inputs:
       dataset_id:
@@ -78,13 +83,13 @@ jobs:
       LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
       LANGFUSE_TRACE_CONTENT: ${{ vars.LANGFUSE_TRACE_CONTENT }}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
-      DATASET_ID: ${{ inputs.dataset_id }}
-      STAGE: ${{ inputs.stage }}
-      LIMIT: ${{ inputs.limit }}
-      OFFSET: ${{ inputs.offset }}
-      LANGUAGE_FILTER: ${{ inputs.language }}
-      INCLUDE_NONCOMMERCIAL: ${{ inputs.include_noncommercial }}
-      REQUESTED_RUN_TAG: ${{ inputs.run_tag }}
+      DATASET_ID: ${{ inputs.dataset_id || 'frames' }}
+      STAGE: ${{ inputs.stage || 'prepare' }}
+      LIMIT: ${{ inputs.limit || 3 }}
+      OFFSET: ${{ inputs.offset || 0 }}
+      LANGUAGE_FILTER: ${{ inputs.language || '' }}
+      INCLUDE_NONCOMMERCIAL: ${{ inputs.include_noncommercial || false }}
+      REQUESTED_RUN_TAG: ${{ inputs.run_tag || '' }}
     steps:
       - name: Checkout benchmark runner code
         uses: actions/checkout@v5
