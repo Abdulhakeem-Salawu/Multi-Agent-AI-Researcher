@@ -53,7 +53,9 @@ RUNTIME_SECRET_KEYS = [
     "OTEL_EXPORTER_OTLP_ENDPOINT",
 ]
 
-runtime_secret = modal.Secret.from_local_environ(RUNTIME_SECRET_KEYS)
+runtime_secret = modal.Secret.from_dict(
+    {key: os.getenv(key) for key in RUNTIME_SECRET_KEYS}
+)
 benchmark_volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 
 image = (
