@@ -61,7 +61,8 @@ The first command checks schema/draft structure. The second is expected to fail 
 | HTTP caching | [RFC 9111](https://www.rfc-editor.org/rfc/rfc9111.html) |
 | OAuth PKCE | [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636.html) |
 | Provenance | [W3C PROV-O](https://www.w3.org/TR/prov-o/) |
-| AI risk management | [NIST AI RMF Playbook](https://airc.nist.gov/airmf-resources/playbook/) |
-| LLM security | [OWASP Prompt Injection glossary](https://genai.owasp.org/glossary/prompt-injection/) |
+| AI risk management core | [NIST AI RMF Core, version 1.0](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/) |
+| AI risk management playbook | [NIST AI RMF Playbook](https://airc.nist.gov/airmf-resources/playbook/) |
+| LLM security | [OWASP LLM01:2025 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/) |
 
 The source URLs are research leads checked on 2026-11-28. Their content and licensing must be reviewed again when the source snapshots are frozen. The benchmark's as_of date should be populated for any case whose answer depends on a changing standard, implementation, policy, or release.

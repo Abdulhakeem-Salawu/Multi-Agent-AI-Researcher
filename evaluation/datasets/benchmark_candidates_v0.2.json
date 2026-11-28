@@ -103,8 +103,7 @@
         },
         {
           "claim_id": "LG-PARALLEL-002-C3",
-          "proposition": "A LangGraph run ends when all nodes are inactive and no messages remain in transit.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "A LangGraph conditional routing function can return a list of node names to fan out work to multiple nodes in parallel in the next super-step."
         }
       ],
       "annotations": [],
@@ -921,7 +920,7 @@
       "case_id": "NIST-AIRMF-CORE-001",
       "question": "What are the four core functions of the NIST AI Risk Management Framework 1.0?",
       "scope": "Use NIST's AI RMF Playbook, which organizes suggested actions around the four functions. The answer should distinguish function names from implementation steps.",
-      "as_of": null,
+      "as_of": "2023-01-26T00:00:00Z",
       "topic_tags": [
         "ai_governance",
         "nist",
@@ -935,9 +934,9 @@
         "capture_method": "Source URL metadata only. Source text has not been captured, licensed, hashed, or frozen.",
         "sources": [
           {
-            "source_id": "nist_ai_rmf_playbook",
-            "title": "NIST AI RMF Playbook",
-            "url": "https://airc.nist.gov/airmf-resources/playbook/",
+            "source_id": "nist_ai_rmf_core_1_0",
+            "title": "AI RMF Core — NIST AI Risk Management Framework 1.0 (2023)",
+            "url": "https://airc.nist.gov/airmf-resources/airmf/5-sec-core/",
             "publisher": "National Institute of Standards and Technology",
             "source_type": "official_record",
             "retrieved_at": "2026-11-28T07:42:00Z",
@@ -949,13 +948,13 @@
       "expected_claims": [
         {
           "claim_id": "NIST-AIRMF-CORE-001-C1",
-          "proposition": "The four AI RMF core functions are Govern, Map, Measure, and Manage.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "The AI RMF Core in version 1.0 is composed of four functions: Govern, Map, Measure, and Manage.",
+          "scope_notes": "Version-bounded to the 2023 AI RMF 1.0; the framework is under revision, so do not generalize this wording to an unreleased future version."
         },
         {
           "claim_id": "NIST-AIRMF-CORE-001-C2",
-          "proposition": "The Govern function concerns organization-wide policies, processes, procedures, and practices related to mapping, measuring, and managing AI risks.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "Govern is designed as a cross-cutting function that informs and is infused throughout the other three AI RMF functions.",
+          "scope_notes": "Candidate proposition grounded in the Core page's text and Figure 5 caption; verify using the frozen source."
         }
       ],
       "annotations": [],
@@ -965,7 +964,7 @@
       "case_id": "NIST-AIRMF-PLAYBOOK-002",
       "question": "Does NIST describe the AI RMF Playbook as a mandatory checklist that every organization must follow in full?",
       "scope": "Use the NIST AI RMF Playbook's introductory statement. Treat this as a source-bounded interpretation question and preserve the distinction between voluntary suggested actions and formal regulatory requirements.",
-      "as_of": "2026-11-28T07:42:00Z",
+      "as_of": "2026-11-28T00:00:00Z",
       "topic_tags": [
         "ai_governance",
         "nist",
@@ -993,13 +992,13 @@
       "expected_claims": [
         {
           "claim_id": "NIST-AIRMF-PLAYBOOK-002-C1",
-          "proposition": "NIST describes the Playbook as a checklist that organizations must follow in its entirety.",
-          "scope_notes": "Candidate proposition is intentionally framed for verification; determine whether the linked source supports or contradicts it."
+          "proposition": "NIST describes the Playbook as a mandatory checklist that organizations must follow in its entirety.",
+          "scope_notes": "Intentionally challenge proposition. Verify whether the source supports or contradicts it."
         },
         {
           "claim_id": "NIST-AIRMF-PLAYBOOK-002-C2",
-          "proposition": "The NIST AI RMF Playbook describes its suggested actions as voluntary and says organizations may use as many or as few as apply to their use case.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "The NIST AI RMF Playbook's suggested actions are voluntary, and organizations may use as many or as few as apply to their use case or interests.",
+          "scope_notes": "Candidate proposition based on the page's introductory statement; verify against a frozen copy."
         }
       ],
       "annotations": [],
@@ -1024,8 +1023,8 @@
         "sources": [
           {
             "source_id": "owasp_prompt_injection",
-            "title": "Prompt Injection — GenAI Security Project Glossary",
-            "url": "https://genai.owasp.org/glossary/prompt-injection/",
+            "title": "LLM01:2025 Prompt Injection",
+            "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
             "publisher": "OWASP GenAI Security Project",
             "source_type": "documentation",
             "retrieved_at": "2026-11-28T07:42:00Z",
@@ -1037,13 +1036,11 @@
       "expected_claims": [
         {
           "claim_id": "OWASP-PI-001-C1",
-          "proposition": "Prompt injection involves malicious instructions embedded in input that cause a large language model to override its intended behavior.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "OWASP describes prompt injection as a vulnerability where input can manipulate model responses and alter model behavior in unintended or unexpected ways."
         },
         {
           "claim_id": "OWASP-PI-001-C2",
-          "proposition": "The OWASP glossary explains that system instructions and attacker-supplied instructions both arrive as tokens in the model's context window.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "OWASP states that retrieval-augmented generation and fine-tuning do not fully mitigate prompt-injection vulnerabilities."
         }
       ],
       "annotations": [],
@@ -1068,8 +1065,8 @@
         "sources": [
           {
             "source_id": "owasp_prompt_injection",
-            "title": "Prompt Injection — GenAI Security Project Glossary",
-            "url": "https://genai.owasp.org/glossary/prompt-injection/",
+            "title": "LLM01:2025 Prompt Injection",
+            "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
             "publisher": "OWASP GenAI Security Project",
             "source_type": "documentation",
             "retrieved_at": "2026-11-28T07:42:00Z",
@@ -1081,13 +1078,11 @@
       "expected_claims": [
         {
           "claim_id": "OWASP-PI-002-C1",
-          "proposition": "Direct prompt injection arrives through the user input field.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "Direct prompt injection occurs when a user's prompt input directly alters model behavior in an unintended or unexpected way."
         },
         {
           "claim_id": "OWASP-PI-002-C2",
-          "proposition": "Indirect prompt injection is embedded in external or retrieved content that the model processes rather than being supplied directly as the user's instruction.",
-          "scope_notes": "Candidate proposition only; verify against a frozen source before adjudication."
+          "proposition": "Indirect prompt injection occurs when an LLM accepts external input, such as a website or file, whose content alters the model's behavior when interpreted."
         }
       ],
       "annotations": [],
