@@ -4,7 +4,11 @@ import pytest
 
 modal = pytest.importorskip("modal")
 
-from evaluation.external.modal_app import safe_run_tag, validate_remote_model_endpoint
+from evaluation.external.modal_app import (
+    _normalize_secret_values,
+    safe_run_tag,
+    validate_remote_model_endpoint,
+)  # noqa: E402
 
 
 def test_modal_run_tag_is_safe_for_volume_paths():
@@ -34,3 +38,17 @@ def test_modal_runner_accepts_remote_openai_compatible_https_endpoint():
 def test_modal_runner_rejects_insecure_or_secret_bearing_endpoint_urls(endpoint):
     with pytest.raises(ValueError):
         validate_remote_model_endpoint(endpoint, "LLM_BASE_URL")
+
+
+
+def test_modal_secret_values_trim_newlines_and_omit_blank_optional_values():
+    cleaned = _normalize_secret_values({
+        "TAVILY_KEY": " tavily-key-value\r\n",
+        "LLM_API_KEY": "  ",
+        "LANGFUSE_SECRET_KEY": None,
+    })
+    assert cleaned == {
+        "TAVILY_KEY": "tavily-key-value",
+        "LLM_API_KEY": None,
+        "LANGFUSE_SECRET_KEY": None,
+    }

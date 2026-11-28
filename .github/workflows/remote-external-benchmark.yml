@@ -136,6 +136,11 @@ jobs:
       - name: Run benchmark remotely on Modal
         shell: bash
         run: |
+          # Copying a token from a terminal can accidentally include a trailing newline.
+          # Strip CR/LF without ever printing the token values.
+          MODAL_TOKEN_ID="$(printf '%s' "$MODAL_TOKEN_ID" | tr -d '\r\n')"
+          MODAL_TOKEN_SECRET="$(printf '%s' "$MODAL_TOKEN_SECRET" | tr -d '\r\n')"
+          export MODAL_TOKEN_ID MODAL_TOKEN_SECRET
           run_tag="$REQUESTED_RUN_TAG"
           if [[ -z "$run_tag" ]]; then
             run_tag="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"

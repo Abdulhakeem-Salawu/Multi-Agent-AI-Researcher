@@ -53,8 +53,16 @@ RUNTIME_SECRET_KEYS = [
     "OTEL_EXPORTER_OTLP_ENDPOINT",
 ]
 
+def _normalize_secret_values(values: dict[str, str | None]) -> dict[str, str | None]:
+    """Trim copy/paste line endings and omit absent optional secrets."""
+    return {
+        key: (value.strip() or None) if value is not None else None
+        for key, value in values.items()
+    }
+
+
 runtime_secret = modal.Secret.from_dict(
-    {key: os.getenv(key) for key in RUNTIME_SECRET_KEYS}
+    _normalize_secret_values({key: os.getenv(key) for key in RUNTIME_SECRET_KEYS})
 )
 benchmark_volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 
