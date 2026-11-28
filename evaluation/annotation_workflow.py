@@ -87,6 +87,62 @@ def _assert_form_case_fingerprint(form: dict[str, Any], case: Any) -> None:
             f"Form for case {case.case_id} does not match the current frozen case/evidence version. "
             "Regenerate the form from the current dataset."
         )
+    if form.get("question") != case.question or form.get("scope") != case.scope:
+        raise ValueError("Form question or scope was changed after export.")
+
+    form_claims = form.get("claim_judgments")
+    if not isinstance(form_claims, list):
+        raise ValueError("Form is missing its claim list.")
+    actual_claims = [
+        {
+            "claim_id": item.get("claim_id"),
+            "proposition": item.get("proposition"),
+            "scope_notes": item.get("scope_notes", ""),
+        }
+        for item in form_claims
+        if isinstance(item, dict)
+    ]
+    expected_claims = [
+        {
+            "claim_id": item.claim_id,
+            "proposition": item.proposition,
+            "scope_notes": item.scope_notes,
+        }
+        for item in case.expected_claims
+    ]
+    if actual_claims != expected_claims:
+        raise ValueError("Form claims do not match the frozen case definition.")
+
+    if form.get("form_type") == "research_bench.case_annotation":
+        snapshot = form.get("snapshot")
+        if not isinstance(snapshot, dict) or snapshot.get("snapshot_id") != case.snapshot.snapshot_id:
+            raise ValueError("Form snapshot ID does not match the frozen case.")
+        actual_sources = snapshot.get("sources")
+        expected_sources = [
+            {
+                "source_id": source.source_id,
+                "title": source.title,
+                "url": str(source.url),
+                "publisher": source.publisher,
+                "source_type": source.source_type,
+                "published_at": source.published_at.isoformat() if source.published_at else None,
+                "retrieved_at": source.retrieved_at.isoformat(),
+                "content_path": source.content_path,
+                "sha256": source.sha256,
+                "controlled_snapshot_ref": source.controlled_snapshot_ref,
+                "license_id": source.license_id,
+                "redistribution": source.redistribution,
+            }
+            for source in case.snapshot.sources
+        ]
+        if actual_sources != expected_sources:
+            raise ValueError("Form source manifest does not match the frozen snapshot.")
+    elif form.get("form_type") == "research_bench.case_adjudication":
+        if form.get("snapshot_id") != case.snapshot.snapshot_id:
+            raise ValueError("Adjudication form snapshot ID does not match the frozen case.")
+        expected_annotations = [item.model_dump(mode="json") for item in case.annotations]
+        if form.get("independent_annotations") != expected_annotations:
+            raise ValueError("Adjudication form independent annotations do not match the imported submissions.")
 
 
 def _validate_annotation(annotation: CaseAnnotation, case: Any) -> None:

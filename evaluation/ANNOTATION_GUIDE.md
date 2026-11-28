@@ -161,3 +161,6 @@ research-bench import-adjudication /tmp/benchmark-annotated.json \
 Fill the adjudication form with a final source grade and claim status, rationale and timestamp before importing. The adjudicator must be different from the independent annotators. The form includes both independent submissions for comparison and leaves final labels blank.
 
 Keep .research-bench/ local. Do not commit annotator working forms or controlled-store references that reveal sensitive internal locations. Only publish benchmark files after the rights, snapshot, annotation and adjudication review is complete.
+
+
+**Public-repository warning:** the snapshot command only controls the current working tree. If source text has already been committed or pushed to GitHub, deleting the current file does not remove prior copies from Git history, forks, or caches. Do not commit source snapshots until rights are cleared. If restricted material was already pushed, stop distribution and follow the repository host's sensitive-data/history-removal process; deleting the latest file alone is not sufficient.
