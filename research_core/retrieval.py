@@ -56,7 +56,11 @@ def rank_hits(
         raise ValueError(f"Unsupported retrieval mode: {mode}")
     unique: dict[str, RetrievedHit] = {}
     for hit in sorted(hits, key=lambda item: (item.query_index, item.result_index, str(item.url))):
-        unique.setdefault(str(hit.url), hit)
+        url_key = str(hit.url)
+        # Fixed-corpus qrels are keyed by document ID. Preserve distinct corpus
+        # records even when multiple records share a canonical URL.
+        dedupe_key = f"{url_key}#docid:{hit.docid}" if hit.docid else url_key
+        unique.setdefault(dedupe_key, hit)
     candidates = list(unique.values())
     if not candidates:
         return []

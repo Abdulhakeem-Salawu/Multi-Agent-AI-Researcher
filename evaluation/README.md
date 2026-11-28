@@ -80,3 +80,8 @@ See evaluation/ANNOTATION_GUIDE.md for the end-to-end commands and rights rules.
 ## External benchmark integrations
 
 Three upstream datasets can be inspected through the separate research-external CLI and adapters. They are not converted into internal gold claims; their original label types remain distinct. See EXTERNAL_DATASETS.md for dataset provenance, licence caveats, downloading and scoring. No upstream data files are vendored in this repository.
+
+
+## Running external benchmark experiments
+
+The separate external-benchmark runner now supports pinned input downloads, streaming BrowseComp-Plus query preparation, local FTS5 indexing and task-level runs through the actual LangGraph graph. Start with evaluation/EXTERNAL_DATASETS.md. Full source corpora and run outputs are local-only artifacts and are excluded from Git.

@@ -12,6 +12,10 @@ from .adapters import (
     load_deepresearch_bench_ii_jsonl,
     load_frames_tsv,
 )
+from .corpus import build_browsecomp_plus_index
+from .downloads import download_benchmark_file
+from .preparation import prepare_browsecomp_plus_queries
+from .runner import run_experiment
 
 
 def _registry() -> dict[str, Any]:
@@ -103,6 +107,36 @@ def main() -> None:
     )
     inspect.add_argument("--output", type=Path, help="Optional JSON summary output path.")
 
+    download = commands.add_parser("download", help="Download a pinned small benchmark input.")
+    download.add_argument("dataset_id", choices=["deepresearch-bench-ii", "frames"])
+    download.add_argument("--output-dir", type=Path, default=Path("data/external"))
+    download.add_argument("--overwrite", action="store_true")
+
+    prepare = commands.add_parser(
+        "prepare-browsecomp-plus",
+        help="Use the upstream decoder to prepare IDs/URLs without retaining document text.",
+    )
+    prepare.add_argument("--upstream-repo", type=Path, default=Path("external/BrowseComp-Plus"))
+    prepare.add_argument("--output", type=Path, default=Path("data/external/browsecomp-plus/queries.jsonl"))
+    prepare.add_argument("--revision", default="144cff8e35b5eaef7e526346aa60774a9deb941f")
+    prepare.add_argument("--limit", type=int, help="Optional smoke-test limit; omit for all 830 queries.")
+
+    index = commands.add_parser("build-browsecomp-index", help="Build a local FTS5 index from the fixed corpus.")
+    index.add_argument("--output", type=Path, default=Path("data/external/browsecomp-plus/corpus.sqlite3"))
+    index.add_argument("--revision", default="89e412cede7d9904f0e8b717aebd9b317c46dfdc")
+    index.add_argument("--limit", type=int, help="Optional document limit for smoke testing.")
+
+    run = commands.add_parser("run", help="Run a dataset slice through the LangGraph agent and score it.")
+    run.add_argument("dataset_id", choices=["deepresearch-bench-ii", "frames", "browsecomp-plus"])
+    run.add_argument("--input", type=Path, required=True)
+    run.add_argument("--output-dir", type=Path, required=True)
+    run.add_argument("--limit", type=int, default=10)
+    run.add_argument("--offset", type=int, default=0)
+    run.add_argument("--k", type=int, default=10)
+    run.add_argument("--include-noncommercial", action="store_true")
+    run.add_argument("--corpus-index", type=Path)
+    run.add_argument("--resume", action="store_true")
+
     args = parser.parse_args()
     try:
         if args.command == "list":
@@ -120,7 +154,7 @@ def main() -> None:
                     for item in registry["datasets"]
                 ],
             }
-        else:
+        elif args.command == "inspect":
             result = _inspect(
                 args.dataset_id,
                 args.input,
@@ -132,7 +166,38 @@ def main() -> None:
                     json.dumps(result, indent=2, ensure_ascii=False) + "\n",
                     encoding="utf-8",
                 )
-    except (OSError, ValueError, KeyError, TypeError) as exc:
+        elif args.command == "download":
+            result = download_benchmark_file(
+                args.dataset_id,
+                args.output_dir,
+                overwrite=args.overwrite,
+            )
+        elif args.command == "prepare-browsecomp-plus":
+            result = prepare_browsecomp_plus_queries(
+                args.upstream_repo,
+                args.output,
+                revision=args.revision,
+                max_records=args.limit,
+            )
+        elif args.command == "build-browsecomp-index":
+            result = build_browsecomp_plus_index(
+                args.output,
+                revision=args.revision,
+                max_documents=args.limit,
+            )
+        else:
+            result = run_experiment(
+                args.dataset_id,
+                args.input,
+                args.output_dir,
+                limit=args.limit,
+                offset=args.offset,
+                k=args.k,
+                include_noncommercial=args.include_noncommercial,
+                corpus_index=args.corpus_index,
+                resume=args.resume,
+            )
+    except (OSError, RuntimeError, ValueError, KeyError, TypeError) as exc:
         parser.error(str(exc))
 
     print(json.dumps(result, indent=2, ensure_ascii=False))

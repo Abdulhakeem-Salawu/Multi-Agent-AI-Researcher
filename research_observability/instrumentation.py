@@ -61,8 +61,9 @@ class InstrumentedChatModel:
 
 
 class InstrumentedSearchProvider:
-    def __init__(self, delegate: SearchProvider) -> None:
+    def __init__(self, delegate: SearchProvider, provider_name: str = "tavily") -> None:
         self.delegate = delegate
+        self.provider_name = provider_name or "custom"
 
     def search(self, query: str, max_results: int = 8) -> list[SearchHit]:
         started = perf_counter()
@@ -70,7 +71,7 @@ class InstrumentedSearchProvider:
         input_payload = {"query": query, "max_results": max_results} if trace_content_enabled() else None
         with observation(
             "search.web",
-            metadata={"search.provider": "tavily", "search.max_results": max_results},
+            metadata={"search.provider": self.provider_name, "search.max_results": max_results},
             input=input_payload,
         ) as span:
             try:

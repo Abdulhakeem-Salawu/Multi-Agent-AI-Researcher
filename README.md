@@ -246,3 +246,8 @@ This remains an evolving research system, not a claim of production readiness. M
 ## External research benchmark tracks
 
 The evaluation package includes optional adapters for DeepResearch Bench II, FRAMES and BrowseComp-Plus. These remain separate from the internal human-adjudicated ResearchBench because their source labels and scoring semantics differ. See [evaluation/EXTERNAL_DATASETS.md](evaluation/EXTERNAL_DATASETS.md) for licence scope, local download instructions, reproducibility requirements and track-specific scoring.
+
+
+### External benchmark experiments
+
+Pinned dataset downloads, local-only BrowseComp-Plus preparation and FTS5 indexing, and task-level LangGraph experiment runs are documented in [evaluation/EXTERNAL_DATASETS.md](evaluation/EXTERNAL_DATASETS.md). Experiment outputs include SHA-256 and run manifests; no upstream corpora are checked into this repository.

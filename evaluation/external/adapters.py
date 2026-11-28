@@ -149,6 +149,17 @@ def load_deepresearch_bench_ii_jsonl(
                     "blocked_source_urls": [
                         value.strip() for value in blocked_urls if isinstance(value, str)
                     ],
+                    "blocked_reference": {
+                        "title": str(blocked.get("title") or ""),
+                        "authors": (
+                            [str(author) for author in blocked.get("authors", [])]
+                            if isinstance(blocked.get("authors", []), list)
+                            else []
+                        ),
+                        "urls": [
+                            value.strip() for value in blocked_urls if isinstance(value, str)
+                        ],
+                    },
                 },
                 metadata={
                     "upstream_id": record.get("id"),

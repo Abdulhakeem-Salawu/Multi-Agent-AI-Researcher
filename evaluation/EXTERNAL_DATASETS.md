@@ -69,7 +69,7 @@ research-external inspect browsecomp-plus \
   --input data/external/browsecomp_plus_decrypted.jsonl
 ~~~
 
-The upstream workflow may require Hugging Face authentication. Read its current instructions and terms before downloading. The query/evidence file contains 830 queries; the separate corpus contains about 100,195 documents. The adapter does not load that corpus and does not retain the full document text embedded in evidence records. The HF card has an MIT label, but crawled webpage content can remain subject to source-specific rights. Do not mirror or commit the corpus or decrypted benchmark files into this public repository. Use only an approved local or controlled evaluation environment, and check corpus rights before redistribution.
+The preparation command checks that the cloned code repository is checked out at the pinned decoder commit before executing it. The upstream workflow may require Hugging Face authentication. Read its current instructions and terms before downloading. The query/evidence file contains 830 queries; the separate corpus contains about 100,195 documents. The adapter does not load that corpus and does not retain the full document text embedded in evidence records. The HF card has an MIT label, but crawled webpage content can remain subject to source-specific rights. Do not mirror or commit the corpus or decrypted benchmark files into this public repository. Use only an approved local or controlled evaluation environment, and check corpus rights before redistribution.
 
 ## Scoring helpers
 
@@ -95,3 +95,96 @@ Before producing a scored comparison, record:
 The upstream DRB II project also reported in August 2026 that tasks 112 and 114 were temporarily excluded from its leaderboard scoring pending expert review and repair. This adapter preserves the full 132-record source file; reproducing a particular upstream leaderboard requires matching its exact task inclusion rules and evaluator version.
 
 The registry points to upstream main branches for discovery; it is not itself a frozen benchmark release. Pin immutable revisions before publishing a comparison. Do not commit downloaded datasets, decrypted BrowseComp-Plus queries, web document bodies, or retrieval indexes to this repository. These external tracks complement, but do not replace, the internal frozen snapshot and human adjudication workflow.
+
+## Reproducible ingestion, fixed-corpus retrieval and actual agent runs
+
+Install the optional Hugging Face dataset reader:
+
+~~~bash
+pip install -e ".[benchmark]"
+~~~
+
+Download the pinned DRB II or FRAMES text inputs. The downloader verifies the parsed record count and writes a SHA-256 sidecar manifest:
+
+~~~bash
+research-external download deepresearch-bench-ii --output-dir data/external
+research-external download frames --output-dir data/external
+research-external inspect frames --input data/external/frames/test.tsv
+research-external inspect deepresearch-bench-ii --input data/external/drb2/tasks_and_rubrics.jsonl
+~~~
+
+The downloader includes all 132 DRB II source tasks in the local input. The runner excludes its two CC BY-NC tasks unless explicitly requested with --include-noncommercial. Confirm that your use complies with the current task-level licences before using any such item.
+
+BrowseComp-Plus query records are large and obfuscated. Clone the official code at its pinned revision, then prepare a lightweight local query file using the upstream decoder. The output deliberately excludes every document body:
+
+~~~bash
+git clone https://github.com/texttron/BrowseComp-Plus.git external/BrowseComp-Plus
+cd external/BrowseComp-Plus
+git checkout 046949032b0328319cc9a02663a759ec601d9402
+cd ../..
+
+research-external prepare-browsecomp-plus \
+  --upstream-repo external/BrowseComp-Plus \
+  --output data/external/browsecomp-plus/queries.jsonl \
+  --revision 144cff8e35b5eaef7e526346aa60774a9deb941f
+~~~
+
+For a small decoder smoke test, add --limit 10. The default prepares all 830 queries. This does not download the 100,195-document corpus.
+
+### Fixed-corpus BrowseComp-Plus index
+
+The separate corpus is approximately 1.76 GB compressed upstream. Indexing all documents can require several gigabytes of local disk. The command streams the pinned corpus into a local SQLite FTS5 index; document text remains in that local index and must not be committed or redistributed.
+
+~~~bash
+# Smoke test: first 500 documents only; not an official benchmark score
+research-external build-browsecomp-index \
+  --revision 89e412cede7d9904f0e8b717aebd9b317c46dfdc \
+  --output data/external/browsecomp-plus/corpus-smoke.sqlite3 \
+  --limit 500
+
+# Complete corpus index for full retrieval evaluation
+research-external build-browsecomp-index \
+  --revision 89e412cede7d9904f0e8b717aebd9b317c46dfdc \
+  --output data/external/browsecomp-plus/corpus.sqlite3
+~~~
+
+The BrowseComp-Plus run path requires the complete corpus index. It returns upstream document IDs with each retrieved passage so evidence and gold retrieval metrics can be computed against the original judgments. A 500-document index is only a plumbing smoke test and must not be presented as the benchmark result.
+
+### Run the actual agent
+
+The run command invokes the same LangGraph graph used by the application, writes each task result to predictions.jsonl, and saves a run_manifest.json containing input SHA-256, selected task IDs, Git commit, agent model, judge model, provider and corpus revision. It also writes summary.json with track-specific aggregate metrics. Failed tasks are recorded individually. --resume skips already completed task IDs, retries failed tasks, and refuses to append when the dataset inputs, task selection, agent/judge model, corpus revision or corpus index checksum differs from the original run.
+
+Configure the agent as usual using TAVILY_API_KEY, LLM_BASE_URL, LLM_API_KEY and LLM_MODEL. Each track uses an explicitly configured separate judge/extractor through:
+
+- EVAL_JUDGE_LLM_BASE_URL
+- EVAL_JUDGE_LLM_MODEL
+- EVAL_JUDGE_LLM_API_KEY
+- EVAL_JUDGE_TIMEOUT_SECONDS (optional, defaults to 120)
+
+FRAMES uses the judge model only to extract a concise answer from the generated report; exact match and token F1 are then computed deterministically against its answer label. DRB II uses an LLM judge with exact report-substring evidence checks and native 1/0/-1 rubric outcomes. BrowseComp-Plus uses a separate LLM answer judgment and deterministic evidence/gold retrieval metrics. Judge outputs are not human labels.
+
+The runner records the agent base URL, model identifier, query/retrieval limits, retrieval mode and judge endpoint/model as well as data checksums. The endpoint values should be non-secret base URLs; do not put API keys or bearer tokens in URLs. It flushes telemetry after task execution. The runner preserves the first run's timestamp and records subsequent code revisions in the run manifest's resume_history. Aggregates count the latest result per task, so a failed task that is successfully retried is not double-counted. Raw predictions remain append-only for auditability.
+
+Example runs:
+
+~~~bash
+# FRAMES smoke run; it is not a fixed-corpus reproduction.
+research-external run frames \
+  --input data/external/frames/test.tsv \
+  --output-dir evaluation/runs/frames-smoke \
+  --limit 5
+
+research-external run deepresearch-bench-ii \
+  --input data/external/drb2/tasks_and_rubrics.jsonl \
+  --output-dir evaluation/runs/drb2-smoke \
+  --language en \
+  --limit 2
+
+research-external run browsecomp-plus \
+  --input data/external/browsecomp-plus/queries.jsonl \
+  --corpus-index data/external/browsecomp-plus/corpus.sqlite3 \
+  --output-dir evaluation/runs/browsecomp-plus-smoke \
+  --limit 5
+~~~
+
+The --language en or --language zh option filters DRB II before applying --offset and --limit. Leave it unset to use the mixed-language source set. The filter is intended for DRB II; FRAMES and BrowseComp-Plus do not expose this language field through this runner. The first smoke run should be small: each task may invoke several search queries, LLM completions and (for DRB II) multiple rubric-judge batches. Do not compare smoke-run metrics to published benchmark scores. Run a full split only after inspecting costs, failure rates, selected language/domain and the recorded run manifest. The live-web tracks are not fixed-corpus reproductions; only BrowseComp-Plus uses its pinned corpus index.

@@ -52,19 +52,27 @@ class ResearchDependencies:
     max_evidence_sources: int = 8
     max_research_rounds: int = 1
     retrieval_mode: str = "hybrid"
+    search_provider_name: str = "custom"
+    max_question_chars: int = 2000
     store: ResearchRunStore | None = None
 
 
-def build_default_dependencies() -> ResearchDependencies:
+def build_default_dependencies(
+    search_provider: SearchProvider | None = None,
+    *,
+    search_provider_name: str = "tavily",
+) -> ResearchDependencies:
     settings = ResearchSettings.from_environment()
-    if not settings.tavily_api_key:
-        raise RuntimeError("Set TAVILY_API_KEY in .env to enable live web research.")
-
-    return ResearchDependencies(
-        search_provider=TavilySearchProvider(
+    if search_provider is None:
+        if not settings.tavily_api_key:
+            raise RuntimeError("Set TAVILY_API_KEY in .env to enable live web research.")
+        search_provider = TavilySearchProvider(
             settings.tavily_api_key,
             timeout=settings.request_timeout_seconds,
-        ),
+        )
+
+    return ResearchDependencies(
+        search_provider=search_provider,
         llm=OpenAICompatibleChatModel(
             settings.llm_base_url,
             settings.llm_model,
@@ -77,5 +85,7 @@ def build_default_dependencies() -> ResearchDependencies:
         max_evidence_sources=settings.max_evidence_sources,
         max_research_rounds=settings.max_research_rounds,
         retrieval_mode=settings.retrieval_mode,
+        search_provider_name=search_provider_name,
+        max_question_chars=2000,
         store=ResearchRunStore(settings.database_path),
     )

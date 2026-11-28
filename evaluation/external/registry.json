@@ -7,37 +7,52 @@
       "name": "DeepResearch Bench II",
       "track": "report_rubric",
       "upstream_repository": "https://github.com/imlrz/DeepResearch-Bench-II",
-      "upstream_data": "https://github.com/imlrz/DeepResearch-Bench-II/blob/main/tasks_and_rubrics.jsonl",
+      "upstream_data": "https://github.com/imlrz/DeepResearch-Bench-II/blob/ca2d511449646318535fd88c00790f4e85f18a7f/tasks_and_rubrics.jsonl",
       "upstream_format": "jsonl",
       "expected_records": 132,
-      "upstream_revision": "main (pin an immutable commit before publishing scored comparisons)",
+      "upstream_revision": "ca2d511449646318535fd88c00790f4e85f18a7f",
       "license_policy": {
         "scope": "per_task",
-        "default_allowed": ["CC BY 4.0", "CC0"],
-        "excluded_by_default": ["CC BY-NC 4.0"],
-        "noncommercial_task_ids": ["26", "110"],
-        "cc0_task_ids": ["119"],
+        "default_allowed": [
+          "CC BY 4.0",
+          "CC0"
+        ],
+        "excluded_by_default": [
+          "CC BY-NC 4.0"
+        ],
+        "noncommercial_task_ids": [
+          "26",
+          "110"
+        ],
+        "cc0_task_ids": [
+          "119"
+        ],
         "notes": "Upstream says each task follows its source article license. Per-record license metadata is mandatory; unknown license rows are rejected."
       },
       "annotation_provenance": "Expert-authored source reports; rubric items are LLM-extracted, manually revised and expert-reviewed. Per-run rubric scores are produced by an LLM judge, not human labels for every evaluated agent response.",
-      "leaderboard_note": "The upstream project reported that tasks 112 and 114 were temporarily excluded from leaderboard scoring pending expert review/repair in its Aug 2026 update. The adapter preserves the full source task set and does not silently apply a leaderboard-specific filter.",
+      "leaderboard_note": "The upstream project reported that tasks 112 and 114 were temporarily excluded from leaderboard scoring pending expert review/repair in its Aug 2026 update. The adapter preserves the full source task set and does not silently apply a leaderboard-specific filter. The registry's pinned source snapshot retains the complete 132-task source file.",
       "score_semantics": {
-        "1": "rubric satisfied with valid evidence and no blocked reference",
         "0": "rubric not mentioned",
+        "1": "rubric satisfied with valid evidence and no blocked reference",
         "-1": "rubric mentioned but evidence relies on a blocked reference"
       },
-      "corpus_policy": "Load the upstream task/rubric file locally. Do not vendor it as a project dataset. Record the file SHA-256 and task-level license in each experiment."
+      "corpus_policy": "Load the upstream task/rubric file locally. Do not vendor it as a project dataset. Record the file SHA-256 and task-level license in each experiment.",
+      "language_coverage": {
+        "English": 66,
+        "Chinese": 66
+      },
+      "current_source_sha": "GitHub blob a6696cf56e560f5de4e16f54fe4e4c48c349e983 (not an SHA-256 digest)"
     },
     {
       "dataset_id": "frames",
       "name": "FRAMES: Factuality, Retrieval, And reasoning MEasurement Set",
       "track": "multi_hop_qa",
       "upstream_repository": "https://huggingface.co/datasets/google/frames-benchmark",
-      "upstream_data": "https://huggingface.co/datasets/google/frames-benchmark/blob/main/test.tsv",
+      "upstream_data": "https://huggingface.co/datasets/google/frames-benchmark/blob/2383b440f3de33d9c003f089fb66f6677436d696/test.tsv",
       "upstream_format": "tsv",
       "upstream_split": "test",
       "expected_records": 824,
-      "upstream_revision": "main (pin the Hugging Face dataset commit and local file SHA-256 for each experiment)",
+      "upstream_revision": "2383b440f3de33d9c003f089fb66f6677436d696",
       "license_policy": {
         "scope": "dataset_card",
         "dataset_license": "Apache-2.0",
@@ -51,19 +66,23 @@
       "name": "BrowseComp-Plus",
       "track": "fixed_corpus_retrieval_and_research",
       "upstream_repository": "https://github.com/texttron/BrowseComp-Plus",
-      "upstream_data": "https://huggingface.co/datasets/Tevatron/browsecomp-plus",
-      "upstream_corpus": "https://huggingface.co/datasets/Tevatron/browsecomp-plus-corpus",
+      "upstream_data": "https://huggingface.co/datasets/Tevatron/browsecomp-plus/tree/144cff8e35b5eaef7e526346aa60774a9deb941f",
+      "upstream_corpus": "https://huggingface.co/datasets/Tevatron/browsecomp-plus-corpus/tree/89e412cede7d9904f0e8b717aebd9b317c46dfdc",
       "upstream_format": "de-obfuscated-jsonl",
       "upstream_split": "test",
       "expected_records": 830,
-      "upstream_revision": "main (pin the upstream repository and dataset revisions for reproducible experiments)",
+      "upstream_revision": "144cff8e35b5eaef7e526346aa60774a9deb941f",
       "license_policy": {
         "scope": "dataset_card_and_underlying_documents",
         "dataset_card_license": "MIT",
         "notes": "The Hugging Face dataset card carries an MIT label. The corpus contains crawled web documents; that label must not be assumed to clear rights in every underlying webpage. This integration discards document bodies and retains only IDs and URL judgements."
       },
       "annotation_provenance": "Upstream describes evidence documents as human-verified and distinguishes evidence documents from gold documents. The labels are document-level retrieval judgements, not human rubric scores of generated reports.",
-      "corpus_policy": "Use the official upstream de-obfuscation/download workflow to create a local JSONL. The 100,195-document corpus is optional for retrieval experiments and is never copied by this project adapter."
+      "corpus_policy": "Streaming download into local SQLite FTS5 is optional and can require substantial disk space. The index contains document text and must be treated as local controlled evaluation material; do not commit or redistribute it.",
+      "upstream_code_revision": "046949032b0328319cc9a02663a759ec601d9402",
+      "corpus_revision": "89e412cede7d9904f0e8b717aebd9b317c46dfdc",
+      "expected_corpus_documents": 100195,
+      "corpus_size_bytes_approx": 1760000000
     }
   ]
 }

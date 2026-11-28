@@ -96,7 +96,10 @@ def build_research_graph(
 ):
     """Build the graph. Pass a LangGraph checkpointer to persist execution state."""
 
-    search_provider = InstrumentedSearchProvider(dependencies.search_provider)
+    search_provider = InstrumentedSearchProvider(
+        dependencies.search_provider,
+        provider_name=dependencies.search_provider_name,
+    )
     llm = (
         InstrumentedChatModel(dependencies.llm, dependencies.llm_model)
         if dependencies.llm is not None
@@ -123,8 +126,10 @@ def build_research_graph(
         question = str(state.get("question", "")).strip()
         if len(question) < 8:
             raise ValueError("Please provide a research question of at least 8 characters.")
-        if len(question) > 2000:
-            raise ValueError("Research questions must be 2,000 characters or fewer.")
+        if len(question) > dependencies.max_question_chars:
+            raise ValueError(
+                f"Research questions must be {dependencies.max_question_chars:,} characters or fewer."
+            )
         return {
             "question": question,
             "max_queries": dependencies.max_queries,
@@ -250,6 +255,7 @@ def build_research_graph(
                     id=source_id,
                     title=hit.title,
                     url=hit.url,
+                    docid=hit.docid,
                     published_date=hit.published_date,
                     retrieved_at=hit.retrieved_at,
                     search_score=hit.score,

@@ -70,6 +70,8 @@ def test_drb2_loader_preserves_rubric_dimensions_and_excludes_noncommercial_by_d
         "presentation",
     }
     assert item.annotations["blocked_source_urls"] == ["https://blocked.example/source"]
+    assert item.annotations["blocked_reference"]["title"] == "Blocked source"
+    assert item.annotations["blocked_reference"]["urls"] == ["https://blocked.example/source"]
     assert item.annotation_type == "expert_refined_rubric_scored_by_llm_judge"
 
 

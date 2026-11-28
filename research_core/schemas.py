@@ -15,6 +15,7 @@ class SearchHit(BaseModel):
     raw_content: str | None = None
     score: float = Field(default=0.0, ge=0.0, le=1.0)
     published_date: str | None = None
+    docid: str | None = None
 
 
 class RetrievedHit(SearchHit):
@@ -29,6 +30,7 @@ class EvidenceSource(BaseModel):
     title: str
     url: HttpUrl
     published_date: str | None = None
+    docid: str | None = None
     retrieved_at: datetime
     search_score: float = Field(ge=0.0, le=1.0)
     relevance_score: float = Field(ge=0.0)
