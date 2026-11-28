@@ -2,7 +2,7 @@
 
 **Status: draft only. Do not use for quality claims, leaderboard scores, or CI acceptance thresholds.**
 
-This file introduces 22 source-linked research questions and candidate atomic propositions for the human-adjudicated ResearchBench. It is an annotation work queue, not ground truth.
+This file introduces 24 source-linked research questions and candidate atomic propositions for the human-adjudicated ResearchBench. It is an annotation work queue, not ground truth.
 
 ## Scope
 

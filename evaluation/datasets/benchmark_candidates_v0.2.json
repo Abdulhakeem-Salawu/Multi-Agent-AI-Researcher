@@ -3,10 +3,10 @@
   "benchmark_id": "multi-agent-ai-researcher",
   "version": "0.2.0-candidate",
   "status": "draft",
-  "description": "Twenty-two source-linked candidate research cases for expert review and annotation. This is a curation seed pack, not a scored or adjudicated benchmark.",
+  "description": "Twenty-four source-linked candidate research cases for expert review and annotation. This is a curation seed pack, not a scored or adjudicated benchmark.",
   "provenance": {
     "collection_method": "Questions and candidate propositions were authored from official framework documentation, standards, protocol specifications, and project documentation. Source URL metadata was checked on 2026-11-28; source text has not been captured or frozen.",
-    "corpus_description": "Twenty-two draft cases spanning agent orchestration, Python concurrency, SQLite, OpenTelemetry, Prometheus, HTTP caching, OAuth PKCE, W3C provenance, NIST AI risk management, and OWASP prompt-injection concepts. Candidate propositions require expert review and independent annotation.",
+    "corpus_description": "Twenty-four draft cases spanning agent orchestration, Python concurrency, SQLite, OpenTelemetry, Prometheus, HTTP caching, OAuth PKCE, W3C provenance, NIST AI risk management, and OWASP prompt-injection concepts. Candidate propositions require expert review and independent annotation.",
     "collected_at": "2026-11-28T07:42:00Z",
     "dataset_license": "Original questions and candidate propositions: release license not yet selected. Linked source documents are not copied into this dataset and remain subject to their respective terms and licenses.",
     "curation_notes": "All cases are deliberately draft. Each snapshot is unfrozen; source licenses and redistribution permissions are unverified; no annotator labels, evidence spans, or adjudications are included. Do not use this file for model-quality claims, regression thresholds, or benchmark leaderboard results."
