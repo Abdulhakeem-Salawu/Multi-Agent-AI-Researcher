@@ -49,6 +49,7 @@ def test_graph_fans_out_research_and_builds_cited_report():
     )
     report = result["report"]
 
+    assert result.get("claim_candidates"), result.get("claim_candidates")
     assert len(provider.calls) >= 2
     assert len(report["query_plan"]) >= 2
     assert {source["url"] for source in report["sources"]} == {
@@ -111,6 +112,16 @@ class ScriptedLLM:
         self.keep_first_verdict_insufficient = keep_first_verdict_insufficient
 
     def complete(self, system_prompt: str, user_prompt: str, temperature: float = 0.1) -> str:
+        if "knowledge-gap research planner" in system_prompt:
+            claim_id = json.loads(user_prompt)["unresolved_claims"][0]["claim_id"]
+            return json.dumps(
+                [
+                    {
+                        "query": "BM25 term frequency inverse document frequency primary explanation",
+                        "claim_ids": [claim_id],
+                    }
+                ]
+            )
         if "research planner" in system_prompt:
             return json.dumps(["BM25 ranking function"])
         if "evidence-grounded research analyst" in system_prompt:
@@ -157,16 +168,6 @@ class ScriptedLLM:
                     "reasoning": "The supplied passage directly supports this proposition.",
                     "research_needed": False,
                 }
-            )
-        if "knowledge-gap research planner" in system_prompt:
-            claim_id = json.loads(user_prompt)["unresolved_claims"][0]["claim_id"]
-            return json.dumps(
-                [
-                    {
-                        "query": "BM25 term frequency inverse document frequency primary explanation",
-                        "claim_ids": [claim_id],
-                    }
-                ]
             )
         if "independent research-report quality reviewer" in system_prompt:
             return json.dumps(
@@ -215,6 +216,8 @@ def test_claim_verifier_triggers_one_followup_and_rechecks_claim():
     result = graph.invoke({"question": "How does BM25 rank documents?"})
     report = result["report"]
 
+    assert result.get("claim_candidates"), result.get("claim_candidates")
+    assert llm.verification_calls == 2, result.get("verification_results")
     assert len(provider.calls) == 2
     assert report["research_rounds"] == 1
     assert len(report["query_plan"]) == 2
