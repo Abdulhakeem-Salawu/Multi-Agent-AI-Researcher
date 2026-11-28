@@ -20,6 +20,7 @@ class ResearchSettings:
     max_queries: int = 4
     max_results_per_query: int = 8
     max_evidence_sources: int = 8
+    max_research_rounds: int = 1
     retrieval_mode: str = "hybrid"
     database_path: str = "data/research_runs.sqlite3"
 
@@ -35,6 +36,7 @@ class ResearchSettings:
             max_queries=max(1, min(8, int(os.getenv("MAX_RESEARCH_QUERIES", "4")))),
             max_results_per_query=max(1, min(20, int(os.getenv("MAX_RESULTS_PER_QUERY", "8")))),
             max_evidence_sources=max(1, min(20, int(os.getenv("MAX_EVIDENCE_SOURCES", "8")))),
+            max_research_rounds=max(0, min(3, int(os.getenv("MAX_RESEARCH_ROUNDS", "1")))),
             retrieval_mode=os.getenv("RETRIEVAL_MODE", "hybrid"),
             database_path=os.getenv("RESEARCH_DB_PATH", "data/research_runs.sqlite3"),
         )
@@ -47,6 +49,7 @@ class ResearchDependencies:
     max_queries: int = 4
     max_results_per_query: int = 8
     max_evidence_sources: int = 8
+    max_research_rounds: int = 1
     retrieval_mode: str = "hybrid"
     store: ResearchRunStore | None = None
 
@@ -70,6 +73,7 @@ def build_default_dependencies() -> ResearchDependencies:
         max_queries=settings.max_queries,
         max_results_per_query=settings.max_results_per_query,
         max_evidence_sources=settings.max_evidence_sources,
+        max_research_rounds=settings.max_research_rounds,
         retrieval_mode=settings.retrieval_mode,
         store=ResearchRunStore(settings.database_path),
     )
