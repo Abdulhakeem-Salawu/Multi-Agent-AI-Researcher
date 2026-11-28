@@ -61,6 +61,34 @@ def _assert_frozen(case: Any) -> None:
         raise ValueError(f"Case {case.case_id} has no evidence sources to annotate.")
 
 
+def _case_fingerprint(case: Any) -> str:
+    payload = {
+        "case_id": case.case_id,
+        "question": case.question,
+        "scope": case.scope,
+        "as_of": case.as_of.isoformat() if case.as_of else None,
+        "snapshot": {
+            "snapshot_id": case.snapshot.snapshot_id,
+            "frozen": case.snapshot.frozen,
+            "frozen_at": case.snapshot.frozen_at.isoformat() if case.snapshot.frozen_at else None,
+            "capture_method": case.snapshot.capture_method,
+            "sources": [source.model_dump(mode="json") for source in case.snapshot.sources],
+        },
+        "expected_claims": [claim.model_dump(mode="json") for claim in case.expected_claims],
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _assert_form_case_fingerprint(form: dict[str, Any], case: Any) -> None:
+    actual = form.get("case_fingerprint")
+    if not isinstance(actual, str) or actual != _case_fingerprint(case):
+        raise ValueError(
+            f"Form for case {case.case_id} does not match the current frozen case/evidence version. "
+            "Regenerate the form from the current dataset."
+        )
+
+
 def _validate_annotation(annotation: CaseAnnotation, case: Any) -> None:
     source_ids = {source.source_id for source in case.snapshot.sources}
     claim_ids = {claim.claim_id for claim in case.expected_claims}
@@ -98,6 +126,7 @@ def _annotation_form(dataset: Any, case: Any, annotator_id: str) -> dict[str, An
     return {
         "form_schema_version": FORM_VERSION,
         "form_type": "research_bench.case_annotation",
+        "case_fingerprint": _case_fingerprint(case),
         "benchmark_id": dataset.benchmark_id,
         "benchmark_version": dataset.version,
         "case_id": case.case_id,
@@ -224,6 +253,7 @@ def import_annotation_forms(
 
         case = _case_by_id(dataset, str(form.get("case_id", "")))
         _assert_frozen(case)
+        _assert_form_case_fingerprint(form, case)
         annotator_id = str(form.get("annotator_id", ""))
         if not ANNOTATOR_ID_PATTERN.fullmatch(annotator_id):
             raise ValueError(f"{path}: invalid annotator_id.")
@@ -289,6 +319,7 @@ def export_adjudication_form(
     form = {
         "form_schema_version": FORM_VERSION,
         "form_type": "research_bench.case_adjudication",
+        "case_fingerprint": _case_fingerprint(case),
         "benchmark_id": dataset.benchmark_id,
         "benchmark_version": dataset.version,
         "case_id": case.case_id,
@@ -342,6 +373,7 @@ def import_adjudication_form(
 
     case = _case_by_id(dataset, str(form.get("case_id", "")))
     _assert_frozen(case)
+    _assert_form_case_fingerprint(form, case)
     annotator_ids = {item.annotator_id for item in case.annotations}
     adjudicator_id = str(form.get("adjudicator_id", ""))
     if not ANNOTATOR_ID_PATTERN.fullmatch(adjudicator_id):
@@ -417,6 +449,9 @@ def register_source_snapshot(
 ) -> dict[str, Any]:
     dataset = load_dataset(dataset_path)
     _require_draft(dataset)
+    output_target = Path(output_path)
+    if output_target.exists() and not overwrite_dataset:
+        raise FileExistsError(f"Refusing to overwrite existing file: {output_target}")
     case = _case_by_id(dataset, case_id)
     if case.snapshot.frozen:
         raise ValueError("Cannot change source registration after the case snapshot has been frozen.")
@@ -477,6 +512,7 @@ def register_source_snapshot(
         if input_file is not None or controlled_ref:
             raise ValueError("metadata_only sources must not include local text or controlled snapshot references.")
 
+    previous_content_path = source.content_path
     source.license_id = license_id.strip()
     source.redistribution = redistribution
     source.content_path = content_path
@@ -485,6 +521,17 @@ def register_source_snapshot(
     source.retrieved_at = datetime.now(timezone.utc)
 
     _write_json(output_path, dataset.model_dump(mode="json"), overwrite=overwrite_dataset)
+
+    if previous_content_path and previous_content_path != content_path:
+        still_referenced = any(
+            item.content_path == previous_content_path
+            for dataset_case in dataset.cases
+            for item in dataset_case.snapshot.sources
+        )
+        old_snapshot = (root / previous_content_path).resolve()
+        if not still_referenced and root in old_snapshot.parents and old_snapshot.is_file():
+            old_snapshot.unlink()
+
     return {
         "output": str(output_path),
         "case_id": case_id,

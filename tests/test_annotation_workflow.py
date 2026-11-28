@@ -273,3 +273,58 @@ def test_restricted_source_uses_external_reference_without_local_text(tmp_path):
     assert source.controlled_snapshot_ref.startswith("vault://")
     assert source.content_path is None
     assert source.sha256 is None
+
+
+def test_annotation_form_is_rejected_after_frozen_case_definition_changes(tmp_path):
+    frozen_path = _register_and_freeze(tmp_path)
+    paths = export_annotation_forms(frozen_path, tmp_path / "forms", ["annotator_01"])
+    form_path = Path(paths[0])
+    form = json.loads(form_path.read_text(encoding="utf-8"))
+    form["question"] = "A different question with a different evidence scope?"
+    form_path.write_text(json.dumps(form, indent=2), encoding="utf-8")
+
+    dataset = load_dataset(frozen_path)
+    dataset.cases[0].question = "A new question introduced after the form was exported."
+    changed = tmp_path / "changed-case.json"
+    changed.write_text(dataset.model_dump_json(indent=2), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="does not match the current frozen case"):
+        import_annotation_forms(changed, [form_path], tmp_path / "output.json", repo_root=tmp_path)
+
+
+def test_changing_rights_to_restricted_removes_local_snapshot(tmp_path):
+    dataset_path = _draft_dataset(tmp_path)
+    source_file = tmp_path / "source.txt"
+    source_file.write_text(QUOTE, encoding="utf-8")
+    registered = tmp_path / "registered.json"
+    register_source_snapshot(
+        dataset_path,
+        "TEST-001",
+        "TEST-SOURCE",
+        "redistributable",
+        "CC0-1.0",
+        registered,
+        input_file=source_file,
+        confirm_rights=True,
+        repo_root=tmp_path,
+    )
+    registered_dataset = load_dataset(registered)
+    local_snapshot = tmp_path / registered_dataset.cases[0].snapshot.sources[0].content_path
+    assert local_snapshot.is_file()
+
+    restricted = tmp_path / "restricted.json"
+    register_source_snapshot(
+        registered,
+        "TEST-001",
+        "TEST-SOURCE",
+        "restricted",
+        "publisher-terms-reviewed",
+        restricted,
+        controlled_ref="vault://research-bench/TEST-001/TEST-SOURCE",
+        repo_root=tmp_path,
+    )
+
+    assert not local_snapshot.exists()
+    updated_source = load_dataset(restricted).cases[0].snapshot.sources[0]
+    assert updated_source.content_path is None
+    assert updated_source.sha256 is None
