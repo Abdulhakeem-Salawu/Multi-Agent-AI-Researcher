@@ -98,16 +98,16 @@ def validate_remote_model_endpoint(endpoint: str, name: str) -> None:
     from urllib.parse import urlparse
 
     parsed = urlparse(endpoint)
+    hostname = (parsed.hostname or "").lower()
+    if hostname in {"localhost", "127.0.0.1", "::1", "0.0.0.0"}:
+        raise ValueError(
+            f"{name} points to localhost. Modal runs in the cloud; use a publicly reachable HTTPS endpoint."
+        )
     if parsed.scheme != "https" or not parsed.netloc:
         raise ValueError(f"{name} must be an absolute HTTPS URL.")
     if parsed.username or parsed.password or parsed.query or parsed.fragment:
         raise ValueError(
             f"{name} must not embed credentials, query parameters or fragments; pass credentials separately."
-        )
-    hostname = (parsed.hostname or "").lower()
-    if hostname in {"localhost", "127.0.0.1", "::1", "0.0.0.0"}:
-        raise ValueError(
-            f"{name} points to localhost. Modal runs in the cloud; use a publicly reachable HTTPS endpoint."
         )
 
 
