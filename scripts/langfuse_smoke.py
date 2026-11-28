@@ -63,7 +63,7 @@ def run_smoke_test(client: Any | None = None) -> None:
 def main() -> int:
     try:
         run_smoke_test()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - CLI converts all connectivity failures into a nonzero exit.
         print(f"Langfuse smoke test failed: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
     return 0
