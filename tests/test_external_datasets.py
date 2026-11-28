@@ -197,7 +197,7 @@ def test_frames_loader_preserves_row_id_answers_reasoning_types_and_article_labe
 
 def test_frames_answer_and_retrieval_metrics_are_deterministic(tmp_path: Path):
     items = load_frames_tsv(_write_frames_tsv(tmp_path / "frames.tsv"))
-    answer = score_frames_answer("The answer is 42!", items[0].reference_answer)
+    answer = score_frames_answer("42!", items[0].reference_answer)
     retrieval = score_frames_retrieval(
         items[0],
         [

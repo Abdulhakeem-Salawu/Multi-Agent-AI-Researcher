@@ -92,4 +92,6 @@ Before producing a scored comparison, record:
 4. Licence scope and any per-task filtering.
 5. Model, model version, prompt versions, retrieval configuration and scoring parameters.
 
+The upstream DRB II project also reported in August 2026 that tasks 112 and 114 were temporarily excluded from its leaderboard scoring pending expert review and repair. This adapter preserves the full 132-record source file; reproducing a particular upstream leaderboard requires matching its exact task inclusion rules and evaluator version.
+
 The registry points to upstream main branches for discovery; it is not itself a frozen benchmark release. Pin immutable revisions before publishing a comparison. Do not commit downloaded datasets, decrypted BrowseComp-Plus queries, web document bodies, or retrieval indexes to this repository. These external tracks complement, but do not replace, the internal frozen snapshot and human adjudication workflow.

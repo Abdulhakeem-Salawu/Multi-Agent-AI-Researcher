@@ -47,3 +47,7 @@ target-version = "py310"
 
 [tool.ruff.lint.isort]
 known-first-party = ["research_agent", "research_core", "research_observability", "evaluation", "scripts"]
+
+
+[tool.setuptools.package-data]
+"evaluation.external" = ["registry.json"]

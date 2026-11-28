@@ -20,6 +20,7 @@
         "notes": "Upstream says each task follows its source article license. Per-record license metadata is mandatory; unknown license rows are rejected."
       },
       "annotation_provenance": "Expert-authored source reports; rubric items are LLM-extracted, manually revised and expert-reviewed. Per-run rubric scores are produced by an LLM judge, not human labels for every evaluated agent response.",
+      "leaderboard_note": "The upstream project reported that tasks 112 and 114 were temporarily excluded from leaderboard scoring pending expert review/repair in its Aug 2026 update. The adapter preserves the full source task set and does not silently apply a leaderboard-specific filter.",
       "score_semantics": {
         "1": "rubric satisfied with valid evidence and no blocked reference",
         "0": "rubric not mentioned",

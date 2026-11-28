@@ -225,11 +225,17 @@ def load_frames_tsv(path: str | Path) -> list[ExternalBenchmarkItem]:
             seen_ids.add(task_id)
 
             article_urls = _frames_article_urls(row)
-            reasoning_types = [
-                part.strip()
-                for part in str(row.get("reasoning_types", "") or "").split("|")
-                if part.strip()
-            ]
+            raw_reasoning_types = row.get("reasoning_types", "") or ""
+            parsed_reasoning_types = _parse_list_literal(raw_reasoning_types)
+            if parsed_reasoning_types:
+                reasoning_types = parsed_reasoning_types
+            else:
+                reasoning_text = str(raw_reasoning_types).strip()
+                reasoning_types = [
+                    part.strip()
+                    for part in reasoning_text.split("|")
+                    if part.strip()
+                ]
             if not article_urls:
                 raise ExternalDatasetError(
                     f"FRAMES row {task_id}: no relevant Wikipedia article URLs were found."
