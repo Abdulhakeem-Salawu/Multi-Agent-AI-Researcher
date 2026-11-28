@@ -8,6 +8,7 @@ from functools import wraps
 from threading import Lock
 from time import perf_counter
 from typing import Any, TypeVar
+from urllib.parse import urlsplit
 
 from .metrics import record_node
 from .prompts import current_prompt_metadata
@@ -20,6 +21,28 @@ _OTLP_PROVIDER_IDS: set[int] = set()
 
 def trace_content_enabled() -> bool:
     return os.getenv("LANGFUSE_TRACE_CONTENT", "false").strip().lower() in {"1", "true", "yes"}
+
+
+def normalize_langfuse_base_url() -> str | None:
+    """Normalize a configured Langfuse host to an absolute HTTP(S) base URL."""
+    configured = os.getenv("LANGFUSE_BASE_URL")
+    if configured is None or not configured.strip():
+        return None
+
+    base_url = configured.strip().strip("\"'")
+    if "://" not in base_url:
+        base_url = f"https://{base_url}"
+
+    parsed = urlsplit(base_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or not parsed.hostname:
+        raise ValueError(
+            "LANGFUSE_BASE_URL must be an absolute HTTP(S) URL, for example "
+            "https://cloud.langfuse.com. The configured value was not displayed."
+        )
+
+    base_url = base_url.rstrip("/")
+    os.environ["LANGFUSE_BASE_URL"] = base_url
+    return base_url
 
 
 def _configure_otlp_exporter() -> None:
@@ -56,6 +79,7 @@ def get_langfuse_client():
     if not (os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")):
         return None
     try:
+        normalize_langfuse_base_url()
         from langfuse import get_client
 
         client = get_client()

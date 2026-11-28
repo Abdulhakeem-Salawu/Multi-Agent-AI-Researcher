@@ -10,7 +10,7 @@ Langfuse Python SDK v5 is installed only on Python 3.11+. Python 3.10 deployment
 
 ## Langfuse
 
-Create a Langfuse project and add its public and secret keys to the environment. For GitHub Actions, store LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY under Settings → Secrets and variables → Actions → Repository secrets. LANGFUSE_BASE_URL and LANGFUSE_TRACE_CONTENT can also be stored as repository variables. Create text prompts using the names below and promote the version you intend to run to the production label (or set LANGFUSE_PROMPT_LABEL to a label you maintain).
+Create a Langfuse project and add its public and secret keys to the environment. Set LANGFUSE_BASE_URL to an absolute URL including the scheme, for example https://cloud.langfuse.com (or your Langfuse region/self-hosted URL). The application automatically prefixes https:// when only a hostname is supplied. For GitHub Actions, store LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY under Settings → Secrets and variables → Actions → Repository secrets. LANGFUSE_BASE_URL and LANGFUSE_TRACE_CONTENT can also be stored as repository variables. Create text prompts using the names below and promote the version you intend to run to the production label (or set LANGFUSE_PROMPT_LABEL to a label you maintain).
 
 | Prompt name | Purpose |
 |---|---|
