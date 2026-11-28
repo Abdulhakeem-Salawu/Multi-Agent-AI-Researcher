@@ -188,3 +188,90 @@ research-external run browsecomp-plus \
 ~~~
 
 The --language en or --language zh option filters DRB II before applying --offset and --limit. Leave it unset to use the mixed-language source set. The filter is intended for DRB II; FRAMES and BrowseComp-Plus do not expose this language field through this runner. The first smoke run should be small: each task may invoke several search queries, LLM completions and (for DRB II) multiple rubric-judge batches. Do not compare smoke-run metrics to published benchmark scores. Run a full split only after inspecting costs, failure rates, selected language/domain and the recorded run manifest. The live-web tracks are not fixed-corpus reproductions; only BrowseComp-Plus uses its pinned corpus index.
+
+
+## Run benchmark downloads and experiments on Modal (recommended)
+
+The optional Modal runner executes dataset preparation, corpus indexing and model-scored experiments in Modal cloud containers. GitHub Actions only checks out this repository, installs the runner dependencies and starts the Modal job. It does **not** download DRB II, FRAMES or the BrowseComp-Plus dataset/corpus. Modal workers fetch the upstream data directly and persist it in a Modal Volume.
+
+This keeps multi-gigabyte transfers away from a phone tethered to your laptop. The repository source and small control messages still pass through GitHub Actions and Modal, but the benchmark files and full corpus remain inside Modal. Do not run `modal volume get` for the corpus or data directory on a metered local connection.
+
+### One-time GitHub Actions secrets
+
+Your existing `TAVILY_KEY` secret is supported directly. The settings loader accepts either `TAVILY_API_KEY` or `TAVILY_KEY`, with `TAVILY_API_KEY` taking precedence.
+
+Add these secrets under **GitHub repository → Settings → Secrets and variables → Actions → Repository secrets**:
+
+| Secret | Purpose |
+|---|---|
+| `MODAL_TOKEN_ID` | Modal CI authentication token ID |
+| `MODAL_TOKEN_SECRET` | Modal CI authentication token secret |
+| `TAVILY_KEY` | Your existing Tavily credential |
+| `LLM_BASE_URL` | Public HTTPS OpenAI-compatible agent endpoint |
+| `LLM_MODEL` | Agent model identifier |
+| `LLM_API_KEY` | Agent endpoint key, when required |
+| `EVAL_JUDGE_LLM_BASE_URL` | Public HTTPS evaluator/extractor endpoint |
+| `EVAL_JUDGE_LLM_MODEL` | Evaluator/extractor model identifier |
+| `EVAL_JUDGE_LLM_API_KEY` | Evaluator endpoint key, when required |
+
+Optional secrets: `HF_TOKEN` (for Hugging Face access if required), and your existing Langfuse credentials (`LANGFUSE_BASE_URL`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`). Optional repository variables: `MODAL_ENVIRONMENT`, `EVAL_JUDGE_TIMEOUT_SECONDS`, `LANGFUSE_TRACE_CONTENT` and `OTEL_EXPORTER_OTLP_ENDPOINT`.
+
+The agent and judge endpoints must be reachable from Modal over HTTPS. A local address such as `localhost:11434` on your computer will not work from a cloud container. Do not put API keys, query-string credentials or bearer tokens inside the endpoint URL; provide them through the separate key variables. The runner rejects non-HTTPS or credential-bearing endpoint URLs because it records endpoint URLs in experiment manifests.
+
+Modal's local setup does not automatically authenticate GitHub Actions. The workflow uses the official `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET` environment variables. Create a separate CI token with `modal token new` (or a dedicated Modal service-user token), then add the two values as GitHub repository secrets. Do not reuse or paste your personal token into source files. See the [Modal token CLI reference](https://modal.com/docs/cli/latest/token), [Modal GitHub Actions example](https://modal.com/docs/guide/useful-snippets#github-actions) and [Modal Secret documentation](https://modal.com/docs/sdk/py/latest/Secret).
+
+### First run: small FRAMES preparation
+
+Open **GitHub → Actions → Remote external benchmark → Run workflow**.
+
+Choose:
+
+| Input | Value |
+|---|---|
+| Dataset | `frames` |
+| Stage | `prepare` |
+| Limit | `3` (ignored in preparation stage) |
+| Offset | `0` |
+
+This downloads the pinned 824-row FRAMES input on Modal and writes its checksum manifest to the persistent Volume. It does not require model endpoint secrets yet.
+
+Next, run the same workflow with `dataset_id=frames`, `stage=run` and `limit=3`. This executes three questions through the agent and configured evaluator. It requires the agent/judge endpoint secrets and `TAVILY_KEY`.
+
+### BrowseComp-Plus: split preparation from corpus indexing
+
+Do not begin with `stage=all` for your first run. Use three separate workflow dispatches:
+
+1. `dataset_id=browsecomp-plus`, `stage=prepare`: downloads/decrypts the 830 query records on Modal and stores only question, answer, document IDs and URLs in the persistent Volume.
+2. `dataset_id=browsecomp-plus`, `stage=build-corpus`: streams the pinned 100,195-document corpus directly from Hugging Face into a local SQLite FTS5 index on the Modal Volume. This is the large download/indexing step and may require several GB of persistent storage.
+3. `dataset_id=browsecomp-plus`, `stage=run`, `limit=3`: runs the selected task slice against the complete fixed-corpus index.
+
+The application enforces the full 100,195-document corpus and expected upstream revision before it will score BrowseComp-Plus. The local index and experiment outputs are kept in Modal storage, not checked into GitHub.
+
+### Retrieve only a small summary (optional)
+
+Each run prints its aggregate `summary.json` in the GitHub Actions log. Detailed outputs remain on the persistent Modal Volume named `multi-agent-ai-research-benchmarks`.
+
+To list stored run folders:
+
+~~~bash
+modal volume ls multi-agent-ai-research-benchmarks runs
+~~~
+
+To retrieve just a small summary file, not the corpus or input datasets:
+
+~~~bash
+modal volume get multi-agent-ai-research-benchmarks \
+  runs/frames/YOUR_RUN_TAG/summary.json ./frames-summary.json
+~~~
+
+The default run tag is the GitHub workflow run ID and attempt (for example `123456789-1`). The run tag and paths are printed in the workflow log. Avoid retrieving `data/external` or the BrowseComp-Plus `corpus.sqlite3` unless you deliberately want a multi-gigabyte transfer.
+
+### Storage and cost behaviour
+
+Modal Volumes are persistent: data written by one run can be reused by later runs, and the runner explicitly commits its downloads, index and outputs. This avoids downloading the corpus again on every run. Modal compute time and persistent storage are still subject to your Modal workspace's current pricing and account limits. Remove the Volume only when you deliberately want to delete the cached datasets and every stored run:
+
+~~~bash
+modal volume delete multi-agent-ai-research-benchmarks
+~~~
+
+The workflow serializes runs to avoid concurrent writers updating the same persistent Volume. For a cloud run, Modal's Volume must be in the same Modal environment selected by the workflow (your workspace default unless `MODAL_ENVIRONMENT` is set).

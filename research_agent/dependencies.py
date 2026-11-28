@@ -28,7 +28,7 @@ class ResearchSettings:
     def from_environment(cls) -> ResearchSettings:
         load_dotenv()
         return cls(
-            tavily_api_key=os.getenv("TAVILY_API_KEY"),
+            tavily_api_key=os.getenv("TAVILY_API_KEY") or os.getenv("TAVILY_KEY"),
             llm_base_url=os.getenv("LLM_BASE_URL", "http://localhost:11434/v1"),
             llm_api_key=os.getenv("LLM_API_KEY"),
             llm_model=os.getenv("LLM_MODEL", "gemma3:1b"),

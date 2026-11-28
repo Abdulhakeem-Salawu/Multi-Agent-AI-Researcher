@@ -251,3 +251,10 @@ The evaluation package includes optional adapters for DeepResearch Bench II, FRA
 ### External benchmark experiments
 
 Pinned dataset downloads, local-only BrowseComp-Plus preparation and FTS5 indexing, and task-level LangGraph experiment runs are documented in [evaluation/EXTERNAL_DATASETS.md](evaluation/EXTERNAL_DATASETS.md). Experiment outputs include SHA-256 and run manifests; no upstream corpora are checked into this repository.
+
+
+## Modal cloud benchmark execution
+
+The repository includes a manually dispatched GitHub Actions workflow that runs external benchmark preparation and experiments inside Modal. Your `TAVILY_KEY` secret is recognized. Configure `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET` GitHub secrets (separate from your local `modal setup`), plus an HTTPS OpenAI-compatible agent endpoint and judge/extractor endpoint as described in [evaluation/EXTERNAL_DATASETS.md](evaluation/EXTERNAL_DATASETS.md). Your existing `TAVILY_KEY` GitHub secret is used without renaming.
+
+Large dataset and BrowseComp-Plus corpus downloads are made directly by Modal workers and saved to a persistent Modal Volume. They are not downloaded by your local computer or copied into GitHub. Retrieve only the small `summary.json` outputs unless you deliberately intend to transfer the corpus.
