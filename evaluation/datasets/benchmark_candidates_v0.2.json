@@ -919,7 +919,7 @@
     {
       "case_id": "NIST-AIRMF-CORE-001",
       "question": "What are the four core functions of the NIST AI Risk Management Framework 1.0?",
-      "scope": "Use NIST's AI RMF Playbook, which organizes suggested actions around the four functions. The answer should distinguish function names from implementation steps.",
+      "scope": "Use the NIST AI RMF Core page, identified as an excerpt from version 1.0 (2023). Explain the four function names and the cross-cutting role of Govern.",
       "as_of": "2023-01-26T00:00:00Z",
       "topic_tags": [
         "ai_governance",
