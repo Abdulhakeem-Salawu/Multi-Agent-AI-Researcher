@@ -25,7 +25,7 @@ Each prompt should contain the corresponding system instructions currently prese
 
 Prompt management is disabled by default. Enable it with LANGFUSE_PROMPT_MANAGEMENT_ENABLED=true. If a prompt cannot be fetched, the graph falls back to the checked-in system prompt and records the prompt source in observation metadata.
 
-By default, trace metadata contains prompt names/versions, node names, model name and outcome/summary counts. It does not include research questions, prompt text, LLM inputs/outputs, web-search queries or retrieved passages. Set LANGFUSE_TRACE_CONTENT=true only after reviewing your data-retention and privacy requirements.
+By default, full content capture is enabled. Langfuse receives graph-node input state and output updates, system/user prompts, LLM responses, web-search queries, and complete returned search-hit records (including retrieved passages and raw content when the provider supplies it). The `telemetry.content_capture_enabled` metadata attribute makes the setting visible on each observation. Set `LANGFUSE_TRACE_CONTENT=false` to disable content capture and keep operational metadata only. Full capture may send user-provided information and source text to your Langfuse project; review project access, retention and source/data usage restrictions before deploying.
 
 ## OpenTelemetry
 

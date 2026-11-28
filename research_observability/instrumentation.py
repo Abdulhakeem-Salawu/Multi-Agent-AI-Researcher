@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from time import perf_counter
-from typing import Protocol
+from typing import Any, Protocol
 
 from research_core.schemas import SearchHit
 
@@ -60,6 +60,21 @@ class InstrumentedChatModel:
                 record_llm(self.model_name, outcome, perf_counter() - started)
 
 
+def _search_result_for_trace(result: Any) -> Any:
+    """Convert a provider hit into a JSON-compatible, content-complete trace value."""
+    if hasattr(result, "model_dump"):
+        return result.model_dump(mode="json", exclude_none=True)
+    if isinstance(result, dict):
+        return dict(result)
+    if isinstance(result, (list, tuple)):
+        return [_search_result_for_trace(item) for item in result]
+    if result is None or isinstance(result, (str, int, float, bool)):
+        return result
+    if hasattr(result, "__dict__"):
+        return dict(vars(result))
+    return str(result)
+
+
 class InstrumentedSearchProvider:
     def __init__(self, delegate: SearchProvider, provider_name: str = "tavily") -> None:
         self.delegate = delegate
@@ -78,7 +93,12 @@ class InstrumentedSearchProvider:
                 results = self.delegate.search(query, max_results)
                 outcome = "success"
                 if trace_content_enabled() and hasattr(span, "update"):
-                    span.update(output={"result_count": len(results)})
+                    span.update(
+                        output={
+                            "result_count": len(results),
+                            "results": [_search_result_for_trace(item) for item in results],
+                        }
+                    )
                 return results
             except Exception as exc:
                 if hasattr(span, "update"):

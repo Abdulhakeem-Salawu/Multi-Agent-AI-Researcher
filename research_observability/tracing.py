@@ -20,7 +20,15 @@ _OTLP_PROVIDER_IDS: set[int] = set()
 
 
 def trace_content_enabled() -> bool:
-    return os.getenv("LANGFUSE_TRACE_CONTENT", "false").strip().lower() in {"1", "true", "yes"}
+    """Return whether Langfuse should receive full prompts, inputs and outputs.
+
+    Content capture is on by default. Set LANGFUSE_TRACE_CONTENT=false to
+    keep only metadata and operational summaries in telemetry.
+    """
+    configured = os.getenv("LANGFUSE_TRACE_CONTENT")
+    if configured is None or not configured.strip():
+        return True
+    return configured.strip().lower() not in {"0", "false", "no", "off"}
 
 
 def normalize_langfuse_base_url() -> str | None:
@@ -128,8 +136,10 @@ def observation(
     model_parameters: dict[str, Any] | None = None,
 ) -> Iterator[Any]:
     """Create a Langfuse observation when configured, otherwise an OTel span or no-op."""
+    content_capture_enabled = trace_content_enabled()
     safe_metadata = dict(metadata or {})
     safe_metadata.update(current_prompt_metadata())
+    safe_metadata["telemetry.content_capture_enabled"] = content_capture_enabled
 
     langfuse = get_langfuse_client()
     if langfuse is not None:
@@ -138,7 +148,7 @@ def observation(
             "name": name,
             "metadata": safe_metadata,
         }
-        if trace_content_enabled() and input is not None:
+        if content_capture_enabled and input is not None:
             kwargs["input"] = input
         if as_type == "generation" and model:
             kwargs["model"] = model
@@ -199,7 +209,11 @@ def instrument_node(name: str, function: F) -> F:
     def wrapped(state: Any) -> Any:
         started = perf_counter()
         outcome = "error"
-        with observation(name, metadata={"research.node": name}) as span:
+        with observation(
+            name,
+            metadata={"research.node": name},
+            input=state if trace_content_enabled() else None,
+        ) as span:
             try:
                 result = function(state)
                 outcome = "success"

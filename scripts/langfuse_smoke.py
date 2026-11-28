@@ -14,7 +14,7 @@ def run_smoke_test(client: Any | None = None) -> None:
             "Missing GitHub Actions environment variables: " + ", ".join(missing)
         )
 
-    from research_observability.tracing import normalize_langfuse_base_url
+    from research_observability.tracing import normalize_langfuse_base_url, trace_content_enabled
 
     normalize_langfuse_base_url()
 
@@ -30,11 +30,7 @@ def run_smoke_test(client: Any | None = None) -> None:
     if not client.auth_check():
         raise RuntimeError("Langfuse rejected the configured API credentials.")
 
-    content_capture = os.getenv("LANGFUSE_TRACE_CONTENT", "false").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-    }
+    content_capture = trace_content_enabled()
     metadata = {
         "source": "github-actions",
         "branch": os.getenv("GITHUB_REF_NAME", "local"),

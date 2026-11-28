@@ -120,7 +120,7 @@ The URL and content-capture setting may alternatively be repository variables; t
 
 Run it from **Actions → Langfuse connectivity → Run workflow**, selecting the feature branch. The same workflow also runs automatically when its own file or the smoke-test script changes on the feature branch. Do not expose these credentials to workflows triggered by untrusted fork pull requests.
 
-**Privacy:** trace content is excluded by default. Prompt text, research questions, provider queries, retrieved passages and model inputs/outputs are not sent to telemetry unless LANGFUSE_TRACE_CONTENT=true is explicitly enabled. Review your deployment's data-handling requirements before enabling content capture.
+**Langfuse content capture:** full content capture is enabled by default. Traces include system/user prompts, research questions, search queries and returned source passages, graph-node state inputs/outputs, and LLM inputs/responses. The remote benchmark workflow also enables this by default. Set LANGFUSE_TRACE_CONTENT=false (or the GitHub repository variable of the same name to `false`) to retain metadata and operational summaries without the content. Because full traces can contain user-provided information and source text, use a Langfuse project whose access, retention and data-handling settings are appropriate for that material.
 
 ## Offline evaluation
 

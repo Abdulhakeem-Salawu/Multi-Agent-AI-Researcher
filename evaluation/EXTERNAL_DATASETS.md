@@ -210,7 +210,7 @@ Optional secrets:
 | `HF_TOKEN` | Hugging Face access token; not needed for the public Qwen3-1.7B model |
 | `LANGFUSE_BASE_URL`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Existing Langfuse observability credentials |
 
-Optional repository variables include `MODAL_ENVIRONMENT`, `LANGFUSE_TRACE_CONTENT` and `OTEL_EXPORTER_OTLP_ENDPOINT`.
+Optional repository variables include `MODAL_ENVIRONMENT`, `LANGFUSE_TRACE_CONTENT` and `OTEL_EXPORTER_OTLP_ENDPOINT`. Langfuse content capture defaults to enabled in the Modal workflow: graph-node inputs/outputs, LLM prompts/responses, Tavily search queries and returned source passages are sent to Langfuse when credentials are configured. Set the `LANGFUSE_TRACE_CONTENT` repository variable to the literal string `false` to opt out. Check dataset/source usage restrictions and your Langfuse project's access and retention settings before capturing restricted content.
 
 The benchmark workflow has a configurable `model_id` input, defaulting to **`Qwen/Qwen3-1.7B`**. You can select another Hugging Face repository ID later without editing the agent code.
 
