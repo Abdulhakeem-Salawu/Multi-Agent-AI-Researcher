@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 
-import research_observability.instrumentation as instrumentation
-import research_observability.tracing as tracing
+from research_observability import instrumentation, tracing
 from research_core.schemas import SearchHit
 from research_observability.instrumentation import InstrumentedChatModel, InstrumentedSearchProvider
 from research_observability.prompts import (
