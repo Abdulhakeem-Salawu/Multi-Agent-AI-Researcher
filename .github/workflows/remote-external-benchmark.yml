@@ -90,8 +90,8 @@ jobs:
       LANGFUSE_TRACE_CONTENT: ${{ vars.LANGFUSE_TRACE_CONTENT }}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
       DATASET_ID: ${{ inputs.dataset_id || 'frames' }}
-      STAGE: ${{ github.event_name == 'push' && 'run' || inputs.stage || 'prepare' }}
-      LIMIT: ${{ github.event_name == 'push' && 1 || inputs.limit || 3 }}
+      STAGE: ${{ inputs.stage || 'prepare' }}
+      LIMIT: ${{ inputs.limit || 3 }}
       OFFSET: ${{ inputs.offset || 0 }}
       LANGUAGE_FILTER: ${{ inputs.language || '' }}
       INCLUDE_NONCOMMERCIAL: ${{ inputs.include_noncommercial || false }}
