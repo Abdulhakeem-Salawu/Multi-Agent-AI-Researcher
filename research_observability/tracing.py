@@ -29,7 +29,14 @@ def normalize_langfuse_base_url() -> str | None:
     if configured is None or not configured.strip():
         return None
 
-    base_url = configured.strip().strip("\"'")
+    base_url = configured.strip()
+    if base_url.lower().startswith("export "):
+        base_url = base_url[7:].strip()
+    if base_url.upper().startswith("LANGFUSE_BASE_URL"):
+        key, separator, value = base_url.partition("=")
+        if separator and key.strip().upper() == "LANGFUSE_BASE_URL":
+            base_url = value.strip()
+    base_url = base_url.strip().strip("\"'")
     if "://" not in base_url:
         base_url = f"https://{base_url}"
 

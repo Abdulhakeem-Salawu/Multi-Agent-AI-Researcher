@@ -72,3 +72,11 @@ def test_langfuse_smoke_test_fails_when_authentication_is_rejected(monkeypatch):
 
     with pytest.raises(RuntimeError, match="rejected"):
         run_smoke_test(FakeLangfuseClient(auth_result=False))
+
+
+def test_langfuse_base_url_accepts_dotenv_assignment_value(monkeypatch):
+    from research_observability.tracing import normalize_langfuse_base_url
+
+    monkeypatch.setenv("LANGFUSE_BASE_URL", "LANGFUSE_BASE_URL=https://cloud.langfuse.com")
+
+    assert normalize_langfuse_base_url() == "https://cloud.langfuse.com"
