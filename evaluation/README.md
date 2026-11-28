@@ -75,3 +75,8 @@ The research-bench CLI supports:
 - export-adjudication / import-adjudication: prepare and validate a separate adjudicator's final labels.
 
 See evaluation/ANNOTATION_GUIDE.md for the end-to-end commands and rights rules. Forms are not exported for unfrozen cases; released datasets are treated as immutable by these mutation commands. The workflow never scrapes or stores source text automatically, and it does not invent license decisions or annotation labels.
+
+
+## External benchmark integrations
+
+Three upstream datasets can be inspected through the separate research-external CLI and adapters. They are not converted into internal gold claims; their original label types remain distinct. See EXTERNAL_DATASETS.md for dataset provenance, licence caveats, downloading and scoring. No upstream data files are vendored in this repository.

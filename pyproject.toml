@@ -31,6 +31,7 @@ observability = [
 research-agent = "research_agent.cli:main"
 research-eval = "evaluation.cli:main"
 research-bench = "evaluation.benchmark_cli:main"
+research-external = "evaluation.external.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

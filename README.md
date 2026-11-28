@@ -241,3 +241,8 @@ Change RIGHTS_BASIS_RECORDED and the controlled-store reference to the actual do
 5. **Runtime:** durable external checkpoint storage, API hardening and Modal deployment.
 
 This remains an evolving research system, not a claim of production readiness. Model-produced verification and review outputs are fallible and must be measured against expert annotations.
+
+
+## External research benchmark tracks
+
+The evaluation package includes optional adapters for DeepResearch Bench II, FRAMES and BrowseComp-Plus. These remain separate from the internal human-adjudicated ResearchBench because their source labels and scoring semantics differ. See [evaluation/EXTERNAL_DATASETS.md](evaluation/EXTERNAL_DATASETS.md) for licence scope, local download instructions, reproducibility requirements and track-specific scoring.

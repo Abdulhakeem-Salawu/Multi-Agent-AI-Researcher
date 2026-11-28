@@ -33,3 +33,5 @@ jobs:
         run: research-bench validate evaluation/datasets/benchmark_template.json
       - name: Validate ResearchBench candidate seed pack
         run: research-bench validate evaluation/datasets/benchmark_candidates_v0.2.json
+      - name: Validate external benchmark registry
+        run: research-external list
