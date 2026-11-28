@@ -153,7 +153,7 @@ def test_register_and_freeze_records_hash_and_prevents_later_changes(tmp_path):
     assert len(source.sha256 or "") == 64
     assert (tmp_path / source.content_path).read_text(encoding="utf-8") == QUOTE
 
-    with pytest.raises(ValueError, match="already been frozen"):
+    with pytest.raises(ValueError, match="has been frozen"):
         register_source_snapshot(
             frozen_path,
             "TEST-001",
